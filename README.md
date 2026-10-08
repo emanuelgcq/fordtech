@@ -69,7 +69,7 @@ La sección **Taller** reemplaza la lista general de vehículos del menú. Muest
 4. Pulsa **Finalizar estancia / nota de entrega** para registrar receptor, responsable, kilometraje, fecha y condiciones finales. La operación completa el presupuesto, descuenta existencias una sola vez, genera o entrega la nota existente y cambia el ingreso a **Entregado**. Si una validación falla, la operación completa no se guarda.
 5. El vehículo deja la lista activa y su estancia queda en el expediente. Puede ingresar nuevamente con otro registro y presupuesto; sus antecedentes permanecen disponibles.
 
-Las fichas de cliente y vehículo cuentan con una vista de expediente cronológico y pestañas de servicios realizados, productos utilizados, presupuestos y entregas. Incluyen filtros por fechas y, en clientes, por vehículo. Los trabajos pendientes se distinguen de los completados.
+La ficha del cliente mantiene su expediente y filtros. La ficha del vehículo usa una vista sencilla: propietario y datos principales arriba, seguidos de una lista de visitas con fecha, kilometraje, servicios, productos y total. Cada estancia reúne sus presupuestos adicionales sin repetirla en el historial. El buscador permite encontrar trabajos, productos, fechas y documentos; las observaciones y presupuestos se consultan en «Más detalles». Los recibos y el trabajo actual tienen accesos directos.
 
 ### Catálogo suministrado por FORDTECH
 

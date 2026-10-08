@@ -2256,3 +2256,161 @@ tbody tr:hover {
     margin: 10px 10px 12px;
   }
 }
+.vehicle-info-simple {
+  display: flex;
+  align-items: flex-start;
+  gap: 35px;
+  padding: 23px 26px;
+}
+.vehicle-info-simple > div {
+  min-width: 170px;
+}
+.vehicle-info-simple > div > span {
+  display: block;
+  font-size: 12px;
+  color: #657792;
+  margin-bottom: 9px;
+}
+.vehicle-info-simple .text-link {
+  font-size: 16px;
+}
+.vehicle-info-simple p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #536a89;
+  margin-top: 6px;
+}
+.vehicle-info-simple > details {
+  margin-left: auto;
+  max-width: 350px;
+}
+.vehicle-info-simple summary,
+.simple-history-details summary {
+  font-size: 13px;
+  color: #4d6c98;
+  cursor: pointer;
+  font-weight: 600;
+}
+.simple-vehicle-history {
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+}
+.simple-vehicle-history > article {
+  border: 1px solid #dde6f2;
+  border-radius: 9px;
+  padding: 22px;
+}
+.simple-vehicle-history header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid #e8edf5;
+  padding-bottom: 15px;
+}
+.simple-vehicle-history header strong {
+  font-size: 17px;
+  color: #274971;
+}
+.simple-vehicle-history header span:not(.badge) {
+  font-size: 13px;
+  margin-left: 15px;
+  color: #637b9a;
+}
+.simple-history-lines {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  padding: 20px 0;
+}
+.simple-history-lines h3 {
+  font-size: 14px;
+  color: #3b5b84;
+  margin-bottom: 13px;
+}
+.simple-history-lines ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.simple-history-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 15px;
+  color: #3c5271;
+  line-height: 1.65;
+  margin: 7px 0;
+}
+.simple-history-lines li b {
+  font-size: 13px;
+  white-space: nowrap;
+  color: #6f83a1;
+}
+.simple-vehicle-history footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  align-items: center;
+  border-top: 1px solid #e8edf5;
+  padding-top: 16px;
+}
+.simple-vehicle-history footer > strong {
+  font-size: 19px;
+  color: #204b85;
+}
+.simple-vehicle-history footer > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.simple-history-details {
+  margin-top: 20px;
+}
+.simple-history-details[open] > summary {
+  margin-bottom: 16px;
+}
+.simple-history-details p {
+  font-size: 14px;
+  color: #546d8f;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+.simple-history-details .patient-links {
+  margin-bottom: 0;
+}
+@media (max-width: 760px) {
+  .vehicle-info-simple {
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+  }
+  .vehicle-info-simple > div {
+    min-width: 0;
+  }
+  .vehicle-info-simple > details {
+    margin-left: 0;
+    width: 100%;
+  }
+  .simple-vehicle-history {
+    padding: 15px;
+  }
+  .simple-vehicle-history > article {
+    padding: 18px;
+  }
+  .simple-history-lines {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .simple-vehicle-history footer {
+    flex-wrap: wrap;
+  }
+  .simple-vehicle-history header strong {
+    font-size: 15px;
+  }
+  .simple-vehicle-history header span:not(.badge) {
+    font-size: 12px;
+    margin-left: 8px;
+  }
+}

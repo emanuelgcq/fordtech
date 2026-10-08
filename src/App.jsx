@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Records from "./pages/Records";
 import Detail from "./pages/Detail";
+import VehicleDetail from "./pages/VehicleDetail";
 import { Workshop, WorkshopDetail } from "./pages/Workshop";
 import { Quotes, QuoteForm, QuoteDetail } from "./pages/Quotes";
 import { Deliveries, DeliveryForm, DeliveryDetail } from "./pages/Deliveries";
@@ -34,7 +35,13 @@ export default function App() {
           <Route
             key={type}
             path={`/${type}/:id`}
-            element={<Detail key={type} type={type} />}
+            element={
+              type === "vehicles" ? (
+                <VehicleDetail />
+              ) : (
+                <Detail key={type} type={type} />
+              )
+            }
           />
         ))}
         <Route path="/vehicles" element={<Workshop />} />
