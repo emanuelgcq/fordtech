@@ -2473,3 +2473,119 @@ tbody tr:hover {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
 }
+
+@media (max-width: 640px) {
+  .history-panel table {
+    min-width: 0;
+    display: block;
+    font-size: 14px;
+  }
+  .history-panel thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .history-panel tbody {
+    display: block;
+  }
+  .history-panel tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+    padding: 18px 16px;
+    border-bottom: 1px solid #e3eaf5;
+  }
+  .history-panel tr:last-child {
+    border-bottom: 0;
+  }
+  .history-panel td {
+    display: block;
+    min-width: 0;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .history-panel td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 6px;
+    color: #65758d;
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .history-panel .history-items,
+  .history-panel .history-delivery {
+    grid-column: 1 / -1;
+  }
+  .history-panel .history-delivery {
+    border-top: 1px solid #edf0f6;
+    padding-top: 12px;
+  }
+  .history-panel td small {
+    font-size: 12px;
+  }
+  .history-panel .text-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .history-panel .history-date small .text-link {
+    min-height: 32px;
+  }
+  .history-panel .toolbar {
+    gap: 12px;
+  }
+  .history-panel .toolbar select {
+    max-width: none;
+    min-height: 44px;
+  }
+  .history-panel .search {
+    min-height: 44px;
+  }
+  .client-history-layout .panel-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 18px 16px;
+  }
+  .client-history-layout .patient-vehicles {
+    padding: 0 16px 16px;
+  }
+  .client-history-layout .patient-vehicles article {
+    padding: 16px;
+  }
+  .client-history-layout .vehicle-record-title {
+    flex-wrap: wrap;
+  }
+  .client-history-layout .vehicle-record-title > div {
+    min-width: 140px;
+  }
+  .client-history-layout .patient-links .btn {
+    min-height: 44px;
+    font-size: 13px;
+  }
+  .vehicle-info-simple p,
+  .vehicle-info-simple .text-link {
+    overflow-wrap: anywhere;
+  }
+  .page-heading .btn {
+    min-height: 44px;
+    font-size: 13px;
+  }
+}
+@media (max-width: 360px) {
+  main {
+    padding: 20px 12px;
+  }
+  h1 {
+    font-size: 23px;
+  }
+  .history-panel tr {
+    padding: 16px 12px;
+    gap: 12px;
+  }
+}

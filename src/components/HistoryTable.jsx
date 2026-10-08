@@ -113,7 +113,7 @@ export default function HistoryTable({ clientId, vehicleId }) {
             const delivered = r.notes.some((n) => n.status === "Entregado");
             return (
               <tr key={r.id}>
-                <td className="history-date">
+                <td className="history-date" data-label="Fecha">
                   {r.date}
                   <small>{Number(r.mileage || 0).toLocaleString()} km</small>
                   {r.quotes.map((q) => (
@@ -125,7 +125,7 @@ export default function HistoryTable({ clientId, vehicleId }) {
                   ))}
                 </td>
                 {clientId && (
-                  <td>
+                  <td data-label="Vehículo">
                     <Link className="text-link" to={`/vehicles/${r.vehicleId}`}>
                       {car?.brand} {car?.model}
                     </Link>
@@ -133,7 +133,11 @@ export default function HistoryTable({ clientId, vehicleId }) {
                   </td>
                 )}
                 {["service", "product"].map((type) => (
-                  <td key={type} className="history-items">
+                  <td
+                    key={type}
+                    className="history-items"
+                    data-label={type === "service" ? "Servicios" : "Productos"}
+                  >
                     {r.lines.some((l) => l.type === type) ? (
                       <ul>
                         {r.lines
@@ -149,10 +153,10 @@ export default function HistoryTable({ clientId, vehicleId }) {
                     )}
                   </td>
                 ))}
-                <td className="history-total">
+                <td className="history-total" data-label="Total">
                   <strong>{money(r.total)}</strong>
                 </td>
-                <td className="history-delivery">
+                <td className="history-delivery" data-label="Entrega">
                   <Badge value={delivered ? "Entregado" : r.status} />
                   {r.notes.map((n) => (
                     <div key={n.id}>
