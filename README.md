@@ -23,10 +23,10 @@ npm run preview
 
 ## Accesos de demostración
 
-| Rol | Correo | Contraseña |
-| --- | --- | --- |
-| Administrador | admin@fordtech.com | admin123 |
-| Empleado | empleado@fordtech.com | empleado123 |
+| Rol           | Correo                | Contraseña  |
+| ------------- | --------------------- | ----------- |
+| Administrador | admin@fordtech.com    | admin123    |
+| Empleado      | empleado@fordtech.com | empleado123 |
 
 La autenticación, usuarios y persistencia están simulados con localStorage. No es autenticación segura para producción. No introduzcas información sensible ni contraseñas reales. Los datos pertenecen a cada navegador; no hay sincronización entre equipos. El administrador puede restaurar todos los datos de demostración desde el menú lateral, con confirmación.
 
@@ -39,7 +39,7 @@ La autenticación, usuarios y persistencia están simulados con localStorage. No
 - El inventario se descuenta de forma atómica una sola vez al completar un presupuesto. Se verifica el stock combinado por repuesto; un documento completado queda protegido. Los trabajos aprobados y completados alimentan el historial sin registros duplicados.
 - Notas de entrega: una por presupuesto aprobado/completado, autocompletado de cliente, vehículo y detalle; kilometraje, observaciones, recomendaciones, condiciones, responsable, receptor y fechas. Se pueden editar mientras estén pendientes. Marcar como entregada protege el documento. No modifica el presupuesto, no descuenta inventario y no genera ventas.
 - Impresión profesional de presupuestos y entregas: logo, identificación, detalle y firmas, sin navegación administrativa. Para PDF, seleccionar «Guardar como PDF» en el diálogo de impresión del navegador.
-- Datos ficticios: 8 clientes, 12 vehículos, 10 servicios, 15 repuestos, 8 presupuestos, 2 usuarios y 2 notas de entrega.
+- Datos ficticios: 8 clientes, 12 vehículos, 44 servicios, 15 repuestos, 8 presupuestos, 2 usuarios y 2 notas de entrega.
 
 El recurso estático `public/logo.svg` es una recreación vectorial de la referencia visual proporcionada; conserva la marca y los colores azul, blanco y rojo. Se utiliza en acceso, menú y documentos.
 
@@ -58,3 +58,23 @@ No requiere variables de entorno, servidor Node.js permanente ni dominio persona
 Para subir archivos manualmente a Netlify, ejecuta `npm run build` y sube la carpeta `dist` completa (no `src`, `public` ni la raíz del proyecto). Debe contener `index.html`, `assets`, `logo.svg` y `_redirects`. Vite copia automáticamente `public/_redirects` a `dist`, de modo que las rutas directas también funcionan en despliegues manuales.
 
 Para desplegar desde GitHub, asegúrate de que los archivos nuevos del proyecto estén guardados en un commit y enviados a la rama conectada a Netlify. La raíz del proyecto debe ser el directorio base y `dist` el directorio publicado. `netlify.toml` establece el comando y directorio automáticamente. Un 404 en la página principal puede indicar que se publicó una carpeta incorrecta o una versión que aún no contiene la aplicación; un 404 solo al recargar una ruta puede indicar que falta la regla SPA.
+
+## Taller y expedientes integrales
+
+La sección **Taller** reemplaza la lista general de vehículos del menú. Muestra exclusivamente las estancias con estado **En el taller**, con los servicios y repuestos asociados a cada ingreso. Los vehículos registrados que estén fuera del taller se consultan desde la ficha de su propietario.
+
+1. Abre un cliente para consultar sus vehículos, datos de contacto y expediente completo. Puedes registrar otro vehículo desde esa ficha.
+2. En **Taller → Ingresar vehículo**, selecciona el cliente registrado y uno de sus vehículos. Registra fecha, kilometraje, motivo/síntomas y condiciones de recepción. Puedes vincular un presupuesto disponible o crear automáticamente uno nuevo para este ingreso.
+3. En **Gestionar ingreso**, consulta los accesos a las fichas completas del cliente y del vehículo. Registra diagnóstico, evolución, recomendaciones y agrega servicios y repuestos del catálogo, con cantidades y precios particulares. Guarda el seguimiento y los trabajos.
+4. Pulsa **Finalizar estancia / nota de entrega** para registrar receptor, responsable, kilometraje, fecha y condiciones finales. La operación completa el presupuesto, descuenta existencias una sola vez, genera o entrega la nota existente y cambia el ingreso a **Entregado**. Si una validación falla, la operación completa no se guarda.
+5. El vehículo deja la lista activa y su estancia queda en el expediente. Puede ingresar nuevamente con otro registro y presupuesto; sus antecedentes permanecen disponibles.
+
+Las fichas de cliente y vehículo cuentan con una vista de expediente cronológico y pestañas de servicios realizados, productos utilizados, presupuestos y entregas. Incluyen filtros por fechas y, en clientes, por vehículo. Los trabajos pendientes se distinguen de los completados.
+
+### Catálogo suministrado por FORDTECH
+
+Se reemplazaron los 10 servicios ficticios por **44 trabajos** distribuidos en motores, entonaciones, escáner, empacaduras, tren delantero, resellados, aire acondicionado, electricidad, kits de tiempo, croché y diagnóstico. Escáner HP Tuners parte de USD 80; el kit de cadena de 4 cilindros tiene rango USD 150–200. El precio final se puede ajustar en el detalle del trabajo sin alterar el catálogo. «Entonación mayor cilindros» se interpreta como 8 cilindros por su posición en la lista.
+
+Los 15 productos de demostración siguen separados: la tarifa suministrada corresponde a trabajos, no a precios de repuestos. El administrador puede actualizar sus precios y existencias desde Productos.
+
+La actualización migra automáticamente el catálogo en localStorage, manteniendo clientes, vehículos, productos, presupuestos históricos, notas y servicios propios añadidos con identificadores diferentes a los iniciales. Los nombres y precios de documentos anteriores se conservan. No se atribuyen ingresos activos a vehículos antiguos automáticamente: para iniciar su seguimiento, regístralos en Taller. Una instalación nueva incluye 4 ingresos ficticios activos para mostrar el flujo.

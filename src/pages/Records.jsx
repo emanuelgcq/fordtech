@@ -1,25 +1,512 @@
-import {useState} from 'react';
-import {Link,useSearchParams} from 'react-router-dom';
-import {Pencil,Trash2,Eye} from 'lucide-react';
-import {useApp} from '../context/AppContext';
-import {Heading,Modal,Field,SearchBox,Badge,Empty,AddButton,Table} from '../components/UI';
-import {uid,today,money,removeRecord} from '../utils/domain';
-const schemas={
-clients:{title:'Clientes',single:'cliente',desc:'Personas que confían en nuestro trabajo.',fields:[['name','Nombre completo','text',true],['document','Documento de identificación','text',true],['phone','Teléfono','tel',true],['whatsapp','WhatsApp (código de país)','tel'],['email','Correo electrónico','email'],['address','Dirección'],['date','Fecha de registro','date',true],['notes','Observaciones','textarea']]},
-vehicles:{title:'Vehículos',single:'vehículo',desc:'Cada vehículo, conectado con su propietario e historial.',fields:[['clientId','Cliente propietario','client',true],['brand','Marca','text',true],['model','Modelo','text',true],['year','Año','number',true],['plate','Placa','text',true],['vin','VIN / Chasis'],['color','Color'],['mileage','Kilometraje','number',true],['fuel','Combustible','fuel',true],['notes','Observaciones','textarea']]},
-services:{title:'Servicios',single:'servicio',desc:'El catálogo de experiencia y cuidado de FORDTECH.',fields:[['code','Código','text',true],['name','Nombre','text',true],['category','Categoría','text',true],['description','Descripción','textarea'],['price','Precio (USD)','number',true]]},
-products:{title:'Productos y repuestos',single:'producto',desc:'Precios y existencias para cada trabajo.',fields:[['code','Código / SKU','text',true],['name','Nombre','text',true],['category','Categoría','text',true],['brand','Marca'],['description','Descripción','textarea'],['price','Precio de venta (USD)','number',true],['stock','Cantidad disponible','number',true]]},
-users:{title:'Usuarios',single:'usuario',desc:'Accesos de demostración y responsabilidades.',fields:[['name','Nombre completo','text',true],['email','Correo electrónico','email',true],['password','Contraseña de demostración','password',true],['role','Rol','role',true]]}
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Pencil, Trash2, Eye } from "lucide-react";
+import { useApp } from "../context/AppContext";
+import {
+  Heading,
+  Modal,
+  Field,
+  SearchBox,
+  Badge,
+  Empty,
+  AddButton,
+  Table,
+} from "../components/UI";
+import { uid, today, money, removeRecord } from "../utils/domain";
+const schemas = {
+  clients: {
+    title: "Clientes",
+    single: "cliente",
+    desc: "Personas que confían en nuestro trabajo.",
+    fields: [
+      ["name", "Nombre completo", "text", true],
+      ["document", "Documento de identificación", "text", true],
+      ["phone", "Teléfono", "tel", true],
+      ["whatsapp", "WhatsApp (código de país)", "tel"],
+      ["email", "Correo electrónico", "email"],
+      ["address", "Dirección"],
+      ["date", "Fecha de registro", "date", true],
+      ["notes", "Observaciones", "textarea"],
+    ],
+  },
+  vehicles: {
+    title: "Vehículos",
+    single: "vehículo",
+    desc: "Cada vehículo, conectado con su propietario e historial.",
+    fields: [
+      ["clientId", "Cliente propietario", "client", true],
+      ["brand", "Marca", "text", true],
+      ["model", "Modelo", "text", true],
+      ["year", "Año", "number", true],
+      ["plate", "Placa", "text", true],
+      ["vin", "VIN / Chasis"],
+      ["color", "Color"],
+      ["mileage", "Kilometraje", "number", true],
+      ["fuel", "Combustible", "fuel", true],
+      ["notes", "Observaciones", "textarea"],
+    ],
+  },
+  services: {
+    title: "Servicios",
+    single: "servicio",
+    desc: "El catálogo de experiencia y cuidado de FORDTECH.",
+    fields: [
+      ["code", "Código", "text", true],
+      ["name", "Nombre", "text", true],
+      ["category", "Categoría", "text", true],
+      ["description", "Descripción", "textarea"],
+      ["price", "Precio (USD)", "number", true],
+    ],
+  },
+  products: {
+    title: "Productos y repuestos",
+    single: "producto",
+    desc: "Precios y existencias para cada trabajo.",
+    fields: [
+      ["code", "Código / SKU", "text", true],
+      ["name", "Nombre", "text", true],
+      ["category", "Categoría", "text", true],
+      ["brand", "Marca"],
+      ["description", "Descripción", "textarea"],
+      ["price", "Precio de venta (USD)", "number", true],
+      ["stock", "Cantidad disponible", "number", true],
+    ],
+  },
+  users: {
+    title: "Usuarios",
+    single: "usuario",
+    desc: "Accesos de demostración y responsabilidades.",
+    fields: [
+      ["name", "Nombre completo", "text", true],
+      ["email", "Correo electrónico", "email", true],
+      ["password", "Contraseña de demostración", "password", true],
+      ["role", "Rol", "role", true],
+    ],
+  },
 };
-export default function Records({type}){const {db,admin,user,commit,notify}=useApp();const s=schemas[type];const [search,setSearch]=useState('');const [owner,setOwner]=useState('');const [form,setForm]=useState(null);const [params,setParams]=useSearchParams();const restricted=['products','services','users'].includes(type)&&!admin;
-const defaults=()=>({active:true,date:today(),clientId:params.get('client')||'',fuel:'Gasolina',role:'Empleado',price:0,stock:0,mileage:0});
-const rows=db[type].filter(r=>(!owner||r.clientId===owner)&&Object.entries(r).filter(([k])=>k!=='password').some(([,v])=>String(v).toLowerCase().includes(search.toLowerCase())));
-function save(e){e.preventDefault();if(restricted)return;const data={...form,id:form.id||uid()};for(const [key,,kind] of s.fields){if(kind==='number')data[key]=Number(data[key]);if(typeof data[key]==='string')data[key]=data[key].trim();}if(s.fields.some(([key,,kind,required])=>required&&(data[key]===undefined||data[key]===''||(kind==='number'&&!Number.isFinite(data[key]))))){notify('Completa los campos obligatorios.',true);return;}if(type==='vehicles'){data.plate=data.plate.toUpperCase();if(!db.clients.some(c=>c.id===data.clientId)){notify('Selecciona un propietario válido.',true);return;}if(data.year<1900||data.year>new Date().getFullYear()+1){notify('Revisa el año del vehículo.',true);return;}if(form.id&&db.quotes.some(q=>q.vehicleId===form.id)&&db.vehicles.find(v=>v.id===form.id).clientId!==data.clientId){notify('No se puede cambiar el propietario de un vehículo con historial.',true);return;}}
-if(s.fields.some(([key,,kind])=>kind==='number'&&data[key]<0)){notify('No se permiten valores negativos.',true);return;}
-const unique=type==='clients'?'document':type==='vehicles'?'plate':type==='users'?'email':'code';if(db[type].some(r=>r.id!==data.id&&String(r[unique]).toLowerCase()===String(data[unique]).toLowerCase())){notify('Ya existe un registro con ese documento, placa, correo o código.',true);return;}
-if(type==='users'&&(!data.active||data.role!=='Administrador')&&db.users.filter(u=>u.active&&u.role==='Administrador'&&u.id!==data.id).length===0){notify('Debe existir al menos un administrador activo.',true);return;}
-if(commit(d=>({...d,[type]:d[type].some(r=>r.id===data.id)?d[type].map(r=>r.id===data.id?data:r):[...d[type],data]}))){setForm(null);notify('Registro guardado correctamente.');}}
-function remove(r){if(restricted)return;if(type==='users'&&r.id===user.id){notify('No puedes eliminar tu usuario actual.',true);return;}if(!confirm(`¿Eliminar ${r.name||r.plate}? Esta acción no se puede deshacer.`))return;if(commit(d=>removeRecord(d,type,r.id)))notify('Registro eliminado.');}
-if(type==='users'&&!admin)return <Empty text="Acceso reservado al administrador."/>;
-return <><Heading title={s.title} description={s.desc} action={!restricted&&<AddButton onClick={()=>{setForm(defaults());setParams({});}}>Agregar {s.single}</AddButton>}/><section className="panel"><div className="toolbar"><SearchBox value={search} onChange={setSearch} placeholder={type==='vehicles'?'Buscar por placa, marca o modelo…':type==='clients'?'Buscar nombre, documento o teléfono…':'Buscar en el catálogo…'}/>{type==='vehicles'&&<select aria-label="Filtrar por cliente" value={owner} onChange={e=>setOwner(e.target.value)}><option value="">Todos los clientes</option>{db.clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}<span className="muted">{rows.length} registros</span></div>{restricted&&<p className="info">Tu rol permite consultar este catálogo. La administración corresponde al administrador.</p>}{rows.length?<Table heads={type==='clients'?['Cliente','Documento','Contacto','Estado','Acciones']:type==='vehicles'?['Vehículo','Placa','Propietario','Kilometraje','Estado','Acciones']:type==='users'?['Usuario','Correo','Rol','Estado','Acciones']:['Código','Descripción','Categoría','Precio',...(type==='products'?['Existencias']:[]),'Estado','Acciones']}>{rows.map(r=><tr key={r.id}>{type==='clients'?<><td><strong>{r.name}</strong><small>{r.email}</small></td><td>{r.document}</td><td>{r.phone}</td></>:type==='vehicles'?<><td><strong>{r.brand} {r.model}</strong><small>{r.year} · {r.color}</small></td><td><span className="plate">{r.plate}</span></td><td>{db.clients.find(c=>c.id===r.clientId)?.name}</td><td>{Number(r.mileage).toLocaleString()} km</td></>:type==='users'?<><td><strong>{r.name}</strong></td><td>{r.email}</td><td>{r.role}</td></>:<><td>{r.code}</td><td><strong>{r.name}</strong><small>{r.brand||r.description}</small></td><td>{r.category}</td><td>{money(r.price)}</td>{type==='products'&&<td className={r.stock<5?'danger-text':''}>{r.stock} unidades</td>}</>}<td><Badge value={r.active?'Activo':'Inactivo'}/></td><td><div className="actions">{['clients','vehicles'].includes(type)&&<Link className="icon-btn" aria-label={`Ver ${r.name||r.plate}`} to={`/${type}/${r.id}`}><Eye size={17}/></Link>}{!restricted&&<><button className="icon-btn" aria-label={`Editar ${r.name||r.plate}`} onClick={()=>setForm({...r})}><Pencil size={17}/></button><button className="icon-btn danger-text" aria-label={`Eliminar ${r.name||r.plate}`} onClick={()=>remove(r)}><Trash2 size={17}/></button></>}</div></td></tr>)}</Table>:<Empty text="No se encontraron registros."/>}</section>{form&&<Modal title={`${form.id?'Editar':'Agregar'} ${s.single}`} onClose={()=>setForm(null)}><form onSubmit={save}><div className="form-grid">{s.fields.map(([key,label,kind='text',required])=><Field key={key} label={`${label}${required?' *':''}`}>{['client','role','fuel'].includes(kind)?<select required={required} value={form[key]||''} onChange={e=>setForm({...form,[key]:e.target.value})}><option value="">Seleccionar…</option>{(kind==='client'?db.clients.filter(c=>c.active||c.id===form.clientId).map(c=>({value:c.id,label:c.name})):(kind==='role'?['Administrador','Empleado']:['Gasolina','Diésel','Híbrido','Eléctrico']).map(x=>({value:x,label:x}))).map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>:kind==='textarea'?<textarea value={form[key]||''} onChange={e=>setForm({...form,[key]:e.target.value})}/>:<input required={required} type={kind} min={kind==='number'?0:undefined} step={kind==='number'&&(key==='price')?'0.01':kind==='number'?'1':undefined} value={form[key]??''} onChange={e=>setForm({...form,[key]:e.target.value})}/>}</Field>)}</div><label className="check"><input type="checkbox" checked={form.active} onChange={e=>setForm({...form,active:e.target.checked})}/> Registro activo</label><footer className="form-actions"><button type="button" className="btn" onClick={()=>setForm(null)}>Cancelar</button><button className="btn primary">Guardar {s.single}</button></footer></form></Modal>}{params.get('new')&&!form&&<div className="info"><button className="btn primary" onClick={()=>{setForm(defaults());setParams({});}}>Registrar vehículo para este cliente</button></div>}</>;
+export default function Records({ type }) {
+  const { db, admin, user, commit, notify } = useApp();
+  const s = schemas[type];
+  const [search, setSearch] = useState("");
+  const [owner, setOwner] = useState("");
+  const [form, setForm] = useState(null);
+  const [params, setParams] = useSearchParams();
+  const restricted = ["products", "services", "users"].includes(type) && !admin;
+  const defaults = () => ({
+    active: true,
+    date: today(),
+    clientId: params.get("client") || "",
+    fuel: "Gasolina",
+    role: "Empleado",
+    price: 0,
+    stock: 0,
+    mileage: 0,
+  });
+  useEffect(() => {
+    if (params.get("new")) {
+      setForm(defaults());
+      setParams({});
+    }
+  }, [params]);
+  const rows = db[type].filter(
+    (r) =>
+      (!owner || r.clientId === owner) &&
+      Object.entries(r)
+        .filter(([k]) => k !== "password")
+        .some(([, v]) =>
+          String(v).toLowerCase().includes(search.toLowerCase()),
+        ),
+  );
+  function save(e) {
+    e.preventDefault();
+    if (restricted) return;
+    const data = { ...form, id: form.id || uid() };
+    for (const [key, , kind] of s.fields) {
+      if (kind === "number") data[key] = Number(data[key]);
+      if (typeof data[key] === "string") data[key] = data[key].trim();
+    }
+    if (
+      s.fields.some(
+        ([key, , kind, required]) =>
+          required &&
+          (data[key] === undefined ||
+            data[key] === "" ||
+            (kind === "number" && !Number.isFinite(data[key]))),
+      )
+    ) {
+      notify("Completa los campos obligatorios.", true);
+      return;
+    }
+    if (type === "vehicles") {
+      if (
+        form.id &&
+        (db.visits || []).some((v) => v.vehicleId === form.id) &&
+        db.vehicles.find((v) => v.id === form.id).clientId !== data.clientId
+      ) {
+        notify(
+          "No puedes cambiar el propietario de un vehículo con ingresos.",
+          true,
+        );
+        return;
+      }
+      data.plate = data.plate.toUpperCase();
+      if (!db.clients.some((c) => c.id === data.clientId)) {
+        notify("Selecciona un propietario válido.", true);
+        return;
+      }
+      if (data.year < 1900 || data.year > new Date().getFullYear() + 1) {
+        notify("Revisa el año del vehículo.", true);
+        return;
+      }
+      if (
+        form.id &&
+        db.quotes.some((q) => q.vehicleId === form.id) &&
+        db.vehicles.find((v) => v.id === form.id).clientId !== data.clientId
+      ) {
+        notify(
+          "No se puede cambiar el propietario de un vehículo con historial.",
+          true,
+        );
+        return;
+      }
+    }
+    if (s.fields.some(([key, , kind]) => kind === "number" && data[key] < 0)) {
+      notify("No se permiten valores negativos.", true);
+      return;
+    }
+    const unique =
+      type === "clients"
+        ? "document"
+        : type === "vehicles"
+          ? "plate"
+          : type === "users"
+            ? "email"
+            : "code";
+    if (
+      db[type].some(
+        (r) =>
+          r.id !== data.id &&
+          String(r[unique]).toLowerCase() ===
+            String(data[unique]).toLowerCase(),
+      )
+    ) {
+      notify(
+        "Ya existe un registro con ese documento, placa, correo o código.",
+        true,
+      );
+      return;
+    }
+    if (
+      type === "users" &&
+      (!data.active || data.role !== "Administrador") &&
+      db.users.filter(
+        (u) => u.active && u.role === "Administrador" && u.id !== data.id,
+      ).length === 0
+    ) {
+      notify("Debe existir al menos un administrador activo.", true);
+      return;
+    }
+    if (
+      commit((d) => ({
+        ...d,
+        [type]: d[type].some((r) => r.id === data.id)
+          ? d[type].map((r) => (r.id === data.id ? data : r))
+          : [...d[type], data],
+      }))
+    ) {
+      setForm(null);
+      notify("Registro guardado correctamente.");
+    }
+  }
+  function remove(r) {
+    if (restricted) return;
+    if (type === "users" && r.id === user.id) {
+      notify("No puedes eliminar tu usuario actual.", true);
+      return;
+    }
+    if (
+      !confirm(
+        `¿Eliminar ${r.name || r.plate}? Esta acción no se puede deshacer.`,
+      )
+    )
+      return;
+    if (commit((d) => removeRecord(d, type, r.id)))
+      notify("Registro eliminado.");
+  }
+  if (type === "users" && !admin)
+    return <Empty text="Acceso reservado al administrador." />;
+  return (
+    <>
+      <Heading
+        title={s.title}
+        description={s.desc}
+        action={
+          !restricted && (
+            <AddButton
+              onClick={() => {
+                setForm(defaults());
+                setParams({});
+              }}
+            >
+              Agregar {s.single}
+            </AddButton>
+          )
+        }
+      />
+      <section className="panel">
+        <div className="toolbar">
+          <SearchBox
+            value={search}
+            onChange={setSearch}
+            placeholder={
+              type === "vehicles"
+                ? "Buscar por placa, marca o modelo…"
+                : type === "clients"
+                  ? "Buscar nombre, documento o teléfono…"
+                  : "Buscar en el catálogo…"
+            }
+          />
+          {type === "vehicles" && (
+            <select
+              aria-label="Filtrar por cliente"
+              value={owner}
+              onChange={(e) => setOwner(e.target.value)}
+            >
+              <option value="">Todos los clientes</option>
+              {db.clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <span className="muted">{rows.length} registros</span>
+        </div>
+        {restricted && (
+          <p className="info">
+            Tu rol permite consultar este catálogo. La administración
+            corresponde al administrador.
+          </p>
+        )}
+        {rows.length ? (
+          <Table
+            heads={
+              type === "clients"
+                ? ["Cliente", "Documento", "Contacto", "Estado", "Acciones"]
+                : type === "vehicles"
+                  ? [
+                      "Vehículo",
+                      "Placa",
+                      "Propietario",
+                      "Kilometraje",
+                      "Estado",
+                      "Acciones",
+                    ]
+                  : type === "users"
+                    ? ["Usuario", "Correo", "Rol", "Estado", "Acciones"]
+                    : [
+                        "Código",
+                        "Descripción",
+                        "Categoría",
+                        "Precio",
+                        ...(type === "products" ? ["Existencias"] : []),
+                        "Estado",
+                        "Acciones",
+                      ]
+            }
+          >
+            {rows.map((r) => (
+              <tr key={r.id}>
+                {type === "clients" ? (
+                  <>
+                    <td>
+                      <strong>{r.name}</strong>
+                      <small>{r.email}</small>
+                    </td>
+                    <td>{r.document}</td>
+                    <td>{r.phone}</td>
+                  </>
+                ) : type === "vehicles" ? (
+                  <>
+                    <td>
+                      <strong>
+                        {r.brand} {r.model}
+                      </strong>
+                      <small>
+                        {r.year} · {r.color}
+                      </small>
+                    </td>
+                    <td>
+                      <span className="plate">{r.plate}</span>
+                    </td>
+                    <td>{db.clients.find((c) => c.id === r.clientId)?.name}</td>
+                    <td>{Number(r.mileage).toLocaleString()} km</td>
+                  </>
+                ) : type === "users" ? (
+                  <>
+                    <td>
+                      <strong>{r.name}</strong>
+                    </td>
+                    <td>{r.email}</td>
+                    <td>{r.role}</td>
+                  </>
+                ) : (
+                  <>
+                    <td>{r.code}</td>
+                    <td>
+                      <strong>{r.name}</strong>
+                      <small>{r.brand || r.description}</small>
+                    </td>
+                    <td>{r.category}</td>
+                    <td>
+                      {r.priceMode === "from" ? "Desde " : ""}
+                      {money(r.price)}
+                      {r.priceMode === "range" && (
+                        <small>Hasta {money(r.priceMax)}</small>
+                      )}
+                    </td>
+                    {type === "products" && (
+                      <td className={r.stock < 5 ? "danger-text" : ""}>
+                        {r.stock} unidades
+                      </td>
+                    )}
+                  </>
+                )}
+                <td>
+                  <Badge value={r.active ? "Activo" : "Inactivo"} />
+                </td>
+                <td>
+                  <div className="actions">
+                    {["clients", "vehicles"].includes(type) && (
+                      <Link
+                        className="icon-btn"
+                        aria-label={`Ver ${r.name || r.plate}`}
+                        to={`/${type}/${r.id}`}
+                      >
+                        <Eye size={17} />
+                      </Link>
+                    )}
+                    {!restricted && (
+                      <>
+                        <button
+                          className="icon-btn"
+                          aria-label={`Editar ${r.name || r.plate}`}
+                          onClick={() => setForm({ ...r })}
+                        >
+                          <Pencil size={17} />
+                        </button>
+                        <button
+                          className="icon-btn danger-text"
+                          aria-label={`Eliminar ${r.name || r.plate}`}
+                          onClick={() => remove(r)}
+                        >
+                          <Trash2 size={17} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </Table>
+        ) : (
+          <Empty text="No se encontraron registros." />
+        )}
+      </section>
+      {form && (
+        <Modal
+          title={`${form.id ? "Editar" : "Agregar"} ${s.single}`}
+          onClose={() => setForm(null)}
+        >
+          <form onSubmit={save}>
+            <div className="form-grid">
+              {s.fields.map(([key, label, kind = "text", required]) => (
+                <Field key={key} label={`${label}${required ? " *" : ""}`}>
+                  {["client", "role", "fuel"].includes(kind) ? (
+                    <select
+                      required={required}
+                      value={form[key] || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, [key]: e.target.value })
+                      }
+                    >
+                      <option value="">Seleccionar…</option>
+                      {(kind === "client"
+                        ? db.clients
+                            .filter((c) => c.active || c.id === form.clientId)
+                            .map((c) => ({ value: c.id, label: c.name }))
+                        : (kind === "role"
+                            ? ["Administrador", "Empleado"]
+                            : ["Gasolina", "Diésel", "Híbrido", "Eléctrico"]
+                          ).map((x) => ({ value: x, label: x }))
+                      ).map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : kind === "textarea" ? (
+                    <textarea
+                      value={form[key] || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, [key]: e.target.value })
+                      }
+                    />
+                  ) : (
+                    <input
+                      required={required}
+                      type={kind}
+                      min={kind === "number" ? 0 : undefined}
+                      step={
+                        kind === "number" && key === "price"
+                          ? "0.01"
+                          : kind === "number"
+                            ? "1"
+                            : undefined
+                      }
+                      value={form[key] ?? ""}
+                      onChange={(e) =>
+                        setForm({ ...form, [key]: e.target.value })
+                      }
+                    />
+                  )}
+                </Field>
+              ))}
+            </div>
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={form.active}
+                onChange={(e) => setForm({ ...form, active: e.target.checked })}
+              />{" "}
+              Registro activo
+            </label>
+            <footer className="form-actions">
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setForm(null)}
+              >
+                Cancelar
+              </button>
+              <button className="btn primary">Guardar {s.single}</button>
+            </footer>
+          </form>
+        </Modal>
+      )}
+      {params.get("new") && !form && (
+        <div className="info">
+          <button
+            className="btn primary"
+            onClick={() => {
+              setForm(defaults());
+              setParams({});
+            }}
+          >
+            Registrar vehículo para este cliente
+          </button>
+        </div>
+      )}
+    </>
+  );
 }

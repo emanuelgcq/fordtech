@@ -1,6 +1,148 @@
-import {Link} from 'react-router-dom';
-import {Users,Car,Wrench,Package,FileText,Clock,CheckCircle,ArrowUpRight,Plus} from 'lucide-react';
-import {useApp} from '../context/AppContext';
-import {Heading,Badge,Table} from '../components/UI';
-import {money,totals} from '../utils/domain';
-export default function Dashboard(){const {db,user}=useApp();const stats=[['Clientes',db.clients.length,Users,'clients'],['Vehículos',db.vehicles.length,Car,'vehicles'],['Servicios',db.services.length,Wrench,'services'],['Productos',db.products.length,Package,'products'],['Presupuestos',db.quotes.length,FileText,'quotes'],['Pendientes',db.quotes.filter(q=>['Borrador','Enviado'].includes(q.status)).length,Clock,'quotes'],['Aprobados',db.quotes.filter(q=>q.status==='Aprobado').length,CheckCircle,'quotes']];return <><Heading title={`Hola, ${user.name.split(' ')[0]}`} description="Todo lo que necesitas para poner tu taller en marcha." action={<Link className="btn primary" to="/quotes/new"><Plus size={18}/>Nuevo presupuesto</Link>}/><div className="welcome"><div><p className="eyebrow">PRECISIÓN EN CADA DETALLE</p><h2>El cuidado de cada vehículo<br/>empieza con una buena gestión.</h2><p>Clientes, trabajos y entregas. Todo en un solo lugar.</p><Link to="/deliveries">Consultar notas de entrega <ArrowUpRight size={17}/></Link></div><div className="welcome-car"><Car size={115} strokeWidth={1}/><span>FORDTECH / SERVICIO AUTOMOTRIZ</span></div></div><div className="stats">{stats.map(([label,count,Icon,path])=><Link key={label} to={`/${path}`} className="stat"><span className="stat-icon"><Icon size={22}/></span><span className="muted">{label}</span><strong>{count.toString().padStart(2,'0')}</strong><small>Ver registros <ArrowUpRight size={13}/></small></Link>)}</div><section className="panel"><div className="panel-heading"><div><h2>Actividad reciente</h2><p className="muted">Últimos presupuestos del taller</p></div><Link className="text-link" to="/quotes">Ver todos →</Link></div><Table heads={['Presupuesto','Cliente / vehículo','Fecha','Estado','Total','']}>{[...db.quotes].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(q=><tr key={q.id}><td><Link className="text-link" to={`/quotes/${q.id}`}>{q.number}</Link></td><td><strong>{q.client.name}</strong><small>{q.vehicle.brand} {q.vehicle.model} · {q.vehicle.plate}</small></td><td>{q.date}</td><td><Badge value={q.status}/></td><td><strong>{money(totals(q).total)}</strong></td><td><Link aria-label={`Ver ${q.number}`} to={`/quotes/${q.id}`} className="icon-btn"><ArrowUpRight size={18}/></Link></td></tr>)}</Table></section><p className="demo-foot">Entorno de demostración · Información guardada en este navegador</p></>;}
+import { Link } from "react-router-dom";
+import {
+  Users,
+  Car,
+  Wrench,
+  Package,
+  FileText,
+  Clock,
+  CheckCircle,
+  ArrowUpRight,
+  Plus,
+} from "lucide-react";
+import { useApp } from "../context/AppContext";
+import { Heading, Badge, Table } from "../components/UI";
+import { money, totals } from "../utils/domain";
+export default function Dashboard() {
+  const { db, user } = useApp();
+  const stats = [
+    ["Clientes", db.clients.length, Users, "clients"],
+    [
+      "En el taller",
+      db.visits.filter((v) => v.status === "En el taller").length,
+      Car,
+      "vehicles",
+    ],
+    ["Servicios", db.services.length, Wrench, "services"],
+    ["Productos", db.products.length, Package, "products"],
+    ["Presupuestos", db.quotes.length, FileText, "quotes"],
+    [
+      "Pendientes",
+      db.quotes.filter((q) => ["Borrador", "Enviado"].includes(q.status))
+        .length,
+      Clock,
+      "quotes",
+    ],
+    [
+      "Aprobados",
+      db.quotes.filter((q) => q.status === "Aprobado").length,
+      CheckCircle,
+      "quotes",
+    ],
+  ];
+  return (
+    <>
+      <Heading
+        title={`Hola, ${user.name.split(" ")[0]}`}
+        description="Todo lo que necesitas para poner tu taller en marcha."
+        action={
+          <Link className="btn primary" to="/quotes/new">
+            <Plus size={18} />
+            Nuevo presupuesto
+          </Link>
+        }
+      />
+      <div className="welcome">
+        <div>
+          <p className="eyebrow">PRECISIÓN EN CADA DETALLE</p>
+          <h2>
+            El cuidado de cada vehículo
+            <br />
+            empieza con una buena gestión.
+          </h2>
+          <p>Clientes, trabajos y entregas. Todo en un solo lugar.</p>
+          <Link to="/deliveries">
+            Consultar notas de entrega <ArrowUpRight size={17} />
+          </Link>
+        </div>
+        <div className="welcome-car">
+          <Car size={115} strokeWidth={1} />
+          <span>FORDTECH / SERVICIO AUTOMOTRIZ</span>
+        </div>
+      </div>
+      <div className="stats">
+        {stats.map(([label, count, Icon, path]) => (
+          <Link key={label} to={`/${path}`} className="stat">
+            <span className="stat-icon">
+              <Icon size={22} />
+            </span>
+            <span className="muted">{label}</span>
+            <strong>{count.toString().padStart(2, "0")}</strong>
+            <small>
+              Ver registros <ArrowUpRight size={13} />
+            </small>
+          </Link>
+        ))}
+      </div>
+      <section className="panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Actividad reciente</h2>
+            <p className="muted">Últimos presupuestos del taller</p>
+          </div>
+          <Link className="text-link" to="/quotes">
+            Ver todos →
+          </Link>
+        </div>
+        <Table
+          heads={[
+            "Presupuesto",
+            "Cliente / vehículo",
+            "Fecha",
+            "Estado",
+            "Total",
+            "",
+          ]}
+        >
+          {[...db.quotes]
+            .sort((a, b) => b.date.localeCompare(a.date))
+            .slice(0, 5)
+            .map((q) => (
+              <tr key={q.id}>
+                <td>
+                  <Link className="text-link" to={`/quotes/${q.id}`}>
+                    {q.number}
+                  </Link>
+                </td>
+                <td>
+                  <strong>{q.client.name}</strong>
+                  <small>
+                    {q.vehicle.brand} {q.vehicle.model} · {q.vehicle.plate}
+                  </small>
+                </td>
+                <td>{q.date}</td>
+                <td>
+                  <Badge value={q.status} />
+                </td>
+                <td>
+                  <strong>{money(totals(q).total)}</strong>
+                </td>
+                <td>
+                  <Link
+                    aria-label={`Ver ${q.number}`}
+                    to={`/quotes/${q.id}`}
+                    className="icon-btn"
+                  >
+                    <ArrowUpRight size={18} />
+                  </Link>
+                </td>
+              </tr>
+            ))}
+        </Table>
+      </section>
+      <p className="demo-foot">
+        Entorno de demostración · Información guardada en este navegador
+      </p>
+    </>
+  );
+}
