@@ -1,3 +1,4 @@
+import { issueDelivery } from "../utils/workshop";
 import { useState } from "react";
 import {
   Link,
@@ -15,7 +16,7 @@ import {
   Empty,
   Field,
 } from "../components/UI";
-import { today, uid, saveDelivery } from "../utils/domain";
+import { today, uid } from "../utils/domain";
 import { DeliveryDocument } from "../components/Documents";
 export function Deliveries() {
   const { db } = useApp();
@@ -55,7 +56,7 @@ export function Deliveries() {
             onChange={(e) => setStatus(e.target.value)}
           >
             <option value="">Todos los estados</option>
-            <option>Pendiente</option>
+            <option value="Pendiente">Borrador · sin emitir</option>
             <option>Entregado</option>
           </select>
         </div>
@@ -123,7 +124,7 @@ export function DeliveryForm() {
           condition: "",
           responsible: user.name,
           receiver: quoteParam?.client.name || "",
-          status: "Pendiente",
+          status: "Entregado",
         },
   );
   const [saving, setSaving] = useState(false);
@@ -134,7 +135,8 @@ export function DeliveryForm() {
   const eligible = db.quotes.filter(
     (q) =>
       ["Aprobado", "Completado"].includes(q.status) &&
-      !db.deliveries.some((n) => n.quoteId === q.id && n.id !== id),
+      !db.deliveries.some((n) => n.quoteId === q.id && n.id !== id) &&
+      !db.visits.some((v) => (v.completedQuoteIds || []).includes(q.id)),
   );
   if (id && !original) return <Empty text="Nota no encontrada." />;
   if (original?.status === "Entregado")
@@ -166,8 +168,16 @@ export function DeliveryForm() {
     if (saving) return;
     setSaving(true);
     const noteId = form.id || uid();
-    if (commit((d) => saveDelivery(d, { ...form, id: noteId }))) {
-      notify("Nota de entrega guardada.");
+    if (
+      !confirm(
+        "¿Emitir la nota y entregar el vehículo? Se cerrará su estancia en el taller.",
+      )
+    ) {
+      setSaving(false);
+      return;
+    }
+    if (commit((d) => issueDelivery(d, { ...form, id: noteId }))) {
+      notify("Nota emitida. Vehículo entregado y estancia cerrada.");
       nav(`/deliveries/${noteId}`);
     } else setSaving(false);
   }
@@ -287,15 +297,6 @@ export function DeliveryForm() {
               value={form.receiver}
               onChange={(e) => set("receiver", e.target.value)}
             />
-            <Field label="Estado">
-              <select
-                value={form.status}
-                onChange={(e) => set("status", e.target.value)}
-              >
-                <option>Pendiente</option>
-                <option>Entregado</option>
-              </select>
-            </Field>
           </div>
           {[
             ["observations", "Observaciones del trabajo"],
@@ -310,8 +311,9 @@ export function DeliveryForm() {
             </Field>
           ))}
           <p className="info">
-            Una nota por presupuesto. Esta operación no descuenta existencias ni
-            genera otra venta.
+            Emitir la nota completa el trabajo, descuenta únicamente los
+            repuestos pendientes y retira el vehículo del taller. No genera otra
+            venta.
           </p>
         </section>
         <div className="form-actions">
@@ -319,7 +321,7 @@ export function DeliveryForm() {
             Cancelar
           </Link>
           <button disabled={saving || !!existing} className="btn primary">
-            Guardar nota de entrega
+            Emitir nota y entregar vehículo
           </button>
         </div>
       </form>
@@ -341,7 +343,7 @@ export function DeliveryDetail() {
       )
     )
       return;
-    if (commit((d) => saveDelivery(d, { ...n, status: "Entregado" })))
+    if (commit((d) => issueDelivery(d, { ...n, status: "Entregado" })))
       notify("Vehículo marcado como entregado.");
   }
   return (
@@ -359,7 +361,9 @@ export function DeliveryDetail() {
         <div className="document-actions">
           <button className="btn primary" onClick={() => window.print()}>
             <Printer size={17} />
-            Imprimir / Guardar PDF
+            {n.status === "Pendiente"
+              ? "Imprimir borrador"
+              : "Imprimir / Guardar PDF"}
           </button>
           {n.status === "Pendiente" && (
             <>
@@ -367,16 +371,10 @@ export function DeliveryDetail() {
                 <Pencil size={17} />
                 Editar nota
               </Link>
-              {visit ? (
-                <Link className="btn" to={`/workshop/${visit.id}`}>
-                  Finalizar estancia en Taller
-                </Link>
-              ) : (
-                <button className="btn" onClick={deliver}>
-                  <CheckCircle size={17} />
-                  Marcar como entregado
-                </button>
-              )}
+              <button className="btn primary" onClick={deliver}>
+                <CheckCircle size={17} />
+                Emitir nota y entregar vehículo
+              </button>
             </>
           )}
           <Link className="btn" to={`/quotes/${n.quoteId}`}>

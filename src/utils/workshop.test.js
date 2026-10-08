@@ -1,7 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { seed } from "../data/seed.js";
-import { admit, saveVisit, closeVisit, migrate } from "./workshop.js";
+import {
+  admit,
+  saveVisit,
+  closeVisit,
+  migrate,
+  addAdditionalWork,
+  issueDelivery,
+} from "./workshop.js";
 import { saveDelivery, saveQuote } from "./domain.js";
 import { realServices } from "../data/catalog.js";
 function newVisit() {
@@ -285,4 +292,62 @@ test("Explorer de Carlos admite trabajos con nota pendiente sin duplicar documen
     () => saveQuote(closed, { ...closed.quotes[1], discount: 1 }),
     /histórico/,
   );
+});
+
+test("F-150 permite trabajos adicionales conservando el presupuesto completado y su inventario", () => {
+  const d = seed(),
+    original = structuredClone(d.quotes[4]);
+  const a = addAdditionalWork(
+    d,
+    "visit3",
+    { type: "product", itemId: "p1", name: "Aceite", quantity: 2, price: 12 },
+    d.users[0],
+  );
+  assert.deepEqual(a.quotes[4], original);
+  assert.deepEqual(a.products, d.products);
+  assert.deepEqual(a.visits[2].completedQuoteIds, ["q5"]);
+  const result = issueDelivery(a, {
+    ...delivery,
+    quoteId: a.visits[2].quoteId,
+    mileage: 48805,
+    receiver: "Luisa Pérez",
+  });
+  assert.deepEqual(result.quotes[4], original);
+  assert.equal(result.products[4].stock, d.products[4].stock);
+  assert.equal(result.products[0].stock, d.products[0].stock - 2);
+  assert.equal(result.visits[2].status, "Entregado");
+  const note = result.deliveries.at(-1);
+  assert.equal(note.lines.length, 3);
+  assert.equal(note.amounts.total, 1110 + 24);
+  assert.deepEqual(note.relatedQuoteNumbers, ["PRE-0005", "PRE-0009"]);
+  assert.throws(
+    () =>
+      addAdditionalWork(
+        result,
+        "visit3",
+        {
+          type: "service",
+          itemId: "ft-service-44",
+          name: "Diagnóstico",
+          quantity: 1,
+          price: 60,
+        },
+        d.users[0],
+      ),
+    /entregado/,
+  );
+});
+test("Emitir desde Notas cierra el ingreso y completa el trabajo en una sola operación", () => {
+  const d = seed();
+  const result = issueDelivery(d, {
+    ...d.deliveries[1],
+    deliveryDate: "2026-10-08",
+    mileage: 36205,
+  });
+  assert.equal(result.deliveries[1].status, "Entregado");
+  assert.equal(result.visits[0].status, "Entregado");
+  assert.equal(result.quotes[1].status, "Completado");
+  assert.equal(result.products[1].stock, d.products[1].stock - 1);
+  assert.equal(result.deliveries.length, 2);
+  assert.throws(() => issueDelivery(result, result.deliveries[1]), /conserva/);
 });

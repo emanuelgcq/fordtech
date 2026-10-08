@@ -24,8 +24,13 @@ import {
   Empty,
   Table,
 } from "../components/UI";
-import { money, today, totals, uid } from "../utils/domain";
-import { admit, saveVisit, closeVisit } from "../utils/workshop";
+import { money, today, totals, uid, deliveryDetails } from "../utils/domain";
+import {
+  admit,
+  saveVisit,
+  closeVisit,
+  addAdditionalWork,
+} from "../utils/workshop";
 export function Workshop() {
   const { db, user, commit, notify } = useApp();
   const nav = useNavigate();
@@ -119,55 +124,54 @@ export function Workshop() {
                   <div className="stay-lines">
                     <div>
                       <h3>Servicios de este ingreso</h3>
-                      {q.lines
-                        .filter((l) => l.type === "service")
+                      {deliveryDetails(db, q)
+                        .lines.filter((l) => l.type === "service")
                         .map((l, i) => (
                           <p key={i}>
                             {l.name} <b>× {l.quantity}</b>
                           </p>
                         ))}
-                      {!q.lines.some((l) => l.type === "service") && (
-                        <p className="muted">Sin servicios registrados</p>
-                      )}
+                      {!deliveryDetails(db, q).lines.some(
+                        (l) => l.type === "service",
+                      ) && <p className="muted">Sin servicios registrados</p>}
                     </div>
                     <div>
                       <h3>Productos y repuestos</h3>
-                      {q.lines
-                        .filter((l) => l.type === "product")
+                      {deliveryDetails(db, q)
+                        .lines.filter((l) => l.type === "product")
                         .map((l, i) => (
                           <p key={i}>
                             {l.name} <b>× {l.quantity}</b>
                           </p>
                         ))}
-                      {!q.lines.some((l) => l.type === "product") && (
-                        <p className="muted">Sin productos registrados</p>
-                      )}
+                      {!deliveryDetails(db, q).lines.some(
+                        (l) => l.type === "product",
+                      ) && <p className="muted">Sin productos registrados</p>}
                     </div>
                   </div>
                 </details>
                 <footer>
-                  <strong>{money(totals(q).total)}</strong>
-                  {!q.inventoryApplied &&
-                    !db.deliveries.some(
-                      (n) => n.quoteId === q.id && n.status === "Entregado",
-                    ) && (
-                      <>
-                        <Link
-                          className="btn primary"
-                          to={`/workshop/${v.id}?add=service`}
-                        >
-                          <Plus size={17} />
-                          Añadir servicio
-                        </Link>
-                        <Link
-                          className="btn"
-                          to={`/workshop/${v.id}?add=product`}
-                        >
-                          <Plus size={17} />
-                          Añadir producto
-                        </Link>
-                      </>
-                    )}
+                  <strong>{money(deliveryDetails(db, q).amounts.total)}</strong>
+                  {!db.deliveries.some(
+                    (n) => n.quoteId === q.id && n.status === "Entregado",
+                  ) && (
+                    <>
+                      <Link
+                        className="btn primary"
+                        to={`/workshop/${v.id}?add=service`}
+                      >
+                        <Plus size={17} />
+                        Añadir servicio
+                      </Link>
+                      <Link
+                        className="btn"
+                        to={`/workshop/${v.id}?add=product`}
+                      >
+                        <Plus size={17} />
+                        Añadir producto
+                      </Link>
+                    </>
+                  )}
 
                   <Link className="btn" to={`/vehicles/${car.id}`}>
                     Ficha e historial
@@ -365,7 +369,12 @@ export function WorkshopDetail() {
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
-  const t = totals(quote);
+  const t = deliveryDetails(db, quote).amounts;
+  const previous = (visit.completedQuoteIds || [])
+    .map((id) => db.quotes.find((q) => q.id === id))
+    .filter(Boolean);
+  const canAdd =
+    visit.status === "En el taller" && note?.status !== "Entregado";
   function update(k, value) {
     setForm((f) => ({ ...f, [k]: value }));
     setDirty(true);
@@ -375,6 +384,44 @@ export function WorkshopDetail() {
     setDirty(true);
   }
   function add(i) {
+    if (saved.inventoryApplied) {
+      if (dirty) {
+        notify("Guarda las observaciones antes de añadir otro trabajo.", true);
+        return;
+      }
+      let next;
+      if (
+        commit((d) => {
+          next = addAdditionalWork(
+            d,
+            id,
+            {
+              type: kind,
+              itemId: i.id,
+              name: i.name,
+              price: i.price,
+              quantity: 1,
+            },
+            user,
+          );
+          return next;
+        })
+      ) {
+        const stay = next.visits.find((v) => v.id === id);
+        setForm({ ...stay });
+        setQuote({
+          ...next.quotes.find((q) => q.id === stay.quoteId),
+          lines: next.quotes
+            .find((q) => q.id === stay.quoteId)
+            .lines.map((l) => ({ ...l })),
+        });
+        setPicker(false);
+        setSearch("");
+        notify("Trabajo adicional añadido. Lo completado se conserva.");
+      }
+      return;
+    }
+
     const existing = quote.lines.find(
       (l) => l.itemId === i.id && l.type === kind,
     );
@@ -496,7 +543,7 @@ export function WorkshopDetail() {
                 <button
                   type="button"
                   className="btn primary"
-                  disabled={readonly}
+                  disabled={!canAdd}
                   onClick={() => {
                     setKind("service");
                     setSearch("");
@@ -509,7 +556,7 @@ export function WorkshopDetail() {
                 <button
                   type="button"
                   className="btn"
-                  disabled={readonly}
+                  disabled={!canAdd}
                   onClick={() => {
                     setKind("product");
                     setSearch("");
@@ -522,15 +569,28 @@ export function WorkshopDetail() {
               </div>
               {readonly && (
                 <p className="info">
-                  El detalle de un trabajo completado o ya entregado está
-                  protegido. Puedes consultar sus líneas y finalizar la
-                  estancia.
+                  Los trabajos completados se conservan. Puedes añadir otros
+                  servicios o productos mientras el vehículo siga en el taller.
                 </p>
               )}
               {quote.lines.length ? (
                 <Table
                   heads={["Detalle", "Cantidad", "Precio USD", "Subtotal", ""]}
                 >
+                  {previous
+                    .flatMap((q) => q.lines)
+                    .map((l, i) => (
+                      <tr key={`completed-${i}`}>
+                        <td>
+                          <strong>{l.name}</strong>
+                          <small>Ya realizado</small>
+                        </td>
+                        <td>{l.quantity}</td>
+                        <td>{money(l.price)}</td>
+                        <td>{money(l.price * l.quantity)}</td>
+                        <td />
+                      </tr>
+                    ))}
                   {quote.lines.map((l, i) => (
                     <tr key={`${l.type}-${l.itemId}`}>
                       <td>
@@ -698,7 +758,7 @@ export function WorkshopDetail() {
           </form>
         </div>
       </div>
-      {picker && !readonly && (
+      {picker && canAdd && (
         <Modal
           title={kind === "service" ? "Añadir servicio" : "Añadir producto"}
           onClose={() => setPicker(false)}

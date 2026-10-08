@@ -62,6 +62,31 @@ export function validateQuote(db, q) {
     throw Error("El kilometraje no puede ser negativo.");
   return { c, v };
 }
+export function deliveryDetails(db, q) {
+  const visit = (db.visits || []).find((v) => v.quoteId === q.id);
+  const prior = (visit?.completedQuoteIds || [])
+    .map((id) => db.quotes.find((x) => x.id === id))
+    .filter(Boolean);
+  const quotes = [...prior, q];
+  const amounts = quotes
+    .map(totals)
+    .reduce(
+      (a, t) => ({
+        subtotal: a.subtotal + t.subtotal,
+        discount: a.discount + t.discount,
+        tax: a.tax + t.tax,
+        total: a.total + t.total,
+      }),
+      { subtotal: 0, discount: 0, tax: 0, total: 0 },
+    );
+  return {
+    lines: quotes.flatMap((x) => x.lines.map((l) => ({ ...l }))),
+    discount: amounts.discount,
+    tax: q.tax,
+    amounts,
+    relatedQuoteNumbers: quotes.map((x) => x.number),
+  };
+}
 export function saveQuote(db, input) {
   const old = db.quotes.find((q) => q.id === input.id);
   if (old?.inventoryApplied)
@@ -124,9 +149,10 @@ export function saveQuote(db, input) {
       n.quoteId === q.id && n.status === "Pendiente"
         ? {
             ...n,
-            lines: q.lines.map((l) => ({ ...l })),
-            discount: Number(q.discount || 0),
-            tax: Number(q.tax || 0),
+            ...deliveryDetails(
+              { ...db, quotes: db.quotes.map((x) => (x.id === q.id ? q : x)) },
+              q,
+            ),
             client: { ...q.client },
             vehicle: { ...q.vehicle },
           }
@@ -187,9 +213,7 @@ export function saveDelivery(db, input) {
     quoteNumber: q.number,
     client: old?.client || { ...q.client },
     vehicle: old?.vehicle || { ...q.vehicle },
-    lines: old?.lines || q.lines.map((l) => ({ ...l })),
-    discount: old?.discount ?? Number(q.discount || 0),
-    tax: old?.tax ?? Number(q.tax || 0),
+    ...deliveryDetails(db, q),
   };
   return {
     ...db,

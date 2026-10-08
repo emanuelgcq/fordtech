@@ -64,7 +64,10 @@ export default function Detail({ type }) {
         quote: q,
       })),
     ...notes.map((n) => ({
-      kind: "Entrega del vehículo",
+      kind:
+        n.status === "Entregado"
+          ? "Entrega del vehículo"
+          : "Borrador de entrega",
       date: n.deliveryDate,
       id: n.id,
       note: n,

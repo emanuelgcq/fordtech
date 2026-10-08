@@ -74,7 +74,7 @@ export function SearchBox({ value, onChange, placeholder = "Buscar…" }) {
 export function Badge({ value }) {
   return (
     <span className={`badge status-${String(value).toLowerCase()}`}>
-      {value}
+      {value === "Pendiente" ? "Borrador · sin emitir" : value}
     </span>
   );
 }

@@ -129,19 +129,28 @@ export function DeliveryDocument({ note: n, quote }) {
     discount: n.discount ?? quote?.discount ?? 0,
     tax: n.tax ?? quote?.tax ?? 0,
   };
-  const t = totals(detail);
+  const t = n.amounts || totals(detail);
   return (
     <article className="document delivery-receipt">
       <Header
-        title="NOTA DE ENTREGA / RECIBO"
+        title={
+          n.status === "Pendiente"
+            ? "BORRADOR DE ENTREGA · SIN EMITIR"
+            : "NOTA DE ENTREGA / RECIBO"
+        }
         number={n.number}
         date={n.date}
       />
       <Identity client={n.client} vehicle={n.vehicle} />
       <div className="document-meta">
-        <span>Presupuesto: {n.quoteNumber}</span>
+        <span>
+          Presupuesto: {n.relatedQuoteNumbers?.join(", ") || n.quoteNumber}
+        </span>
         <span>Kilometraje de entrega: {n.mileage} km</span>
-        <span>Estado: {n.status}</span>
+        <span>
+          Estado:{" "}
+          {n.status === "Pendiente" ? "Borrador · sin emitir" : n.status}
+        </span>
       </div>
       <h3 className="section-title">DETALLE DE TRABAJOS Y PRODUCTOS</h3>
       <Lines lines={n.lines} />
@@ -153,7 +162,7 @@ export function DeliveryDocument({ note: n, quote }) {
           Descuento <strong>− {money(t.discount)}</strong>
         </p>
         <p>
-          Impuesto ({detail.tax}%) <strong>{money(t.tax)}</strong>
+          Impuesto <strong>{money(t.tax)}</strong>
         </p>
         <p className="grand-total">
           TOTAL USD <strong>{money(t.total)}</strong>

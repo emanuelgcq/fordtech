@@ -5,6 +5,7 @@ import {
   snapshot,
   saveQuote,
   saveDelivery,
+  deliveryDetails,
 } from "./domain.js";
 import { realServices } from "../data/catalog.js";
 export function migrate(db) {
@@ -171,7 +172,8 @@ export function closeVisit(db, visitId, input) {
       db.deliveries.some(
         (n) =>
           n.quoteId === q.id &&
-          JSON.stringify(n.lines) !== JSON.stringify(q.lines),
+          JSON.stringify(n.lines) !==
+            JSON.stringify(deliveryDetails(db, q).lines),
       )
     )
       throw Error(
@@ -206,4 +208,69 @@ export function closeVisit(db, visitId, input) {
         : v,
     ),
   };
+}
+
+export function addAdditionalWork(db, visitId, line, user) {
+  const visit = db.visits.find((v) => v.id === visitId);
+  if (!visit || visit.status !== "En el taller")
+    throw Error("El vehículo ya fue entregado.");
+  const original = db.quotes.find((q) => q.id === visit.quoteId);
+  if (!original?.inventoryApplied)
+    throw Error("Este trabajo todavía permite edición normal.");
+  if (
+    db.deliveries.some(
+      (n) => n.quoteId === original.id && n.status === "Entregado",
+    )
+  )
+    throw Error("La entrega ya fue finalizada.");
+  const q = {
+    ...original,
+    id: uid(),
+    number: undefined,
+    date: today(),
+    expiry: today(),
+    status: "Borrador",
+    inventoryApplied: false,
+    userId: user.id,
+    author: user.name,
+    lines: [line],
+    discount: 0,
+    tax: 0,
+  };
+  const next = saveQuote(db, q);
+  const updatedVisit = {
+    ...visit,
+    completedQuoteIds: [...(visit.completedQuoteIds || []), original.id],
+    quoteId: q.id,
+  };
+  next.visits = next.visits.map((v) => (v.id === visit.id ? updatedVisit : v));
+  next.deliveries = next.deliveries.map((n) =>
+    n.quoteId === original.id && n.status === "Pendiente"
+      ? {
+          ...n,
+          quoteId: q.id,
+          quoteNumber: next.quotes.at(-1).number,
+          ...deliveryDetails(next, next.quotes.at(-1)),
+        }
+      : n,
+  );
+  return next;
+}
+
+export function issueDelivery(db, input) {
+  const quote = db.quotes.find((q) => q.id === input.quoteId);
+  if (!quote) throw Error("Selecciona un presupuesto.");
+  const visit = (db.visits || []).find(
+    (v) => v.vehicleId === quote.vehicleId && v.status === "En el taller",
+  );
+  if (visit) {
+    if (visit.quoteId !== quote.id)
+      throw Error(
+        "Emite la entrega desde el ingreso actual del vehículo para incluir todos sus trabajos.",
+      );
+    return closeVisit(db, visit.id, input);
+  }
+  if (!quote.inventoryApplied)
+    db = saveQuote(db, { ...quote, status: "Completado" });
+  return saveDelivery(db, { ...input, status: "Entregado" });
 }
