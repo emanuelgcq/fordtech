@@ -39,7 +39,7 @@ La autenticación, usuarios y persistencia están simulados con localStorage. No
 - El inventario se descuenta de forma atómica una sola vez al completar un presupuesto. Se verifica el stock combinado por repuesto; un documento completado queda protegido. Los trabajos aprobados y completados alimentan el historial sin registros duplicados.
 - Notas de entrega: una por presupuesto aprobado/completado, autocompletado de cliente, vehículo y detalle; kilometraje, observaciones, recomendaciones, condiciones, responsable, receptor y fechas. Se pueden editar mientras estén pendientes. Emitir la nota completa los trabajos pendientes, marca el vehículo como entregado y lo retira del taller. El inventario se descuenta desde la finalización de cada presupuesto una sola vez, sin generar otra venta. Las notas pendientes antiguas son borradores sin emitir.
 - Impresión profesional de presupuestos y entregas: logo, identificación, detalle y firmas, sin navegación administrativa. Para PDF, seleccionar «Guardar como PDF» en el diálogo de impresión del navegador.
-- Datos ficticios: 8 clientes, 12 vehículos, 44 servicios, 15 repuestos, 8 presupuestos, 2 usuarios y 2 notas de entrega.
+- Datos ficticios: 8 clientes, 12 vehículos, 44 servicios, 15 repuestos, 26 presupuestos, 22 ingresos al taller, 2 usuarios y 20 notas de entrega. Incluye 18 visitas históricas entregadas de 6 clientes y 8 vehículos, además de 4 ingresos activos.
 
 El recurso estático `public/logo.svg` es una recreación vectorial de la referencia visual proporcionada; conserva la marca y los colores azul, blanco y rojo. Se utiliza en acceso, menú y documentos.
 
@@ -90,3 +90,9 @@ La nota de entrega muestra todos los trabajos y productos, cantidades, precios u
 **Emitir nota y entregar vehículo** finaliza el ingreso en la misma operación, tanto desde Taller como desde Notas de Entrega. No queda un vehículo «En el taller» con una nota emitida. Los documentos pendientes antiguos se muestran como **Borrador · sin emitir** y permiten seguir trabajando hasta su emisión.
 
 Un presupuesto completado conserva sus líneas y el inventario ya descontado. Mientras el vehículo continúe en el taller, **Añadir servicio/producto** registra los trabajos adicionales en un presupuesto nuevo vinculado a la misma estancia. El recibo final reúne todos los trabajos y sus importes; únicamente se descuentan los repuestos de los trabajos nuevos. No se altera el documento histórico ni se duplica el descuento de existencias.
+
+### Historial de demostración
+
+María González, Carlos Mendoza y Luisa Pérez tienen varias visitas finalizadas con servicios, repuestos, totales y recibos. Ana Rodríguez incluye una compra de batería sin servicios; también hay visitas con solo servicios. Los trabajos entregados aparecen en las fichas del cliente y del vehículo, fuera de la lista del taller activo.
+
+Si el navegador ya tiene datos guardados, el administrador puede cargar este nuevo caso desde «Restaurar demostración». La confirmación reemplaza los registros locales por los datos de ejemplo.

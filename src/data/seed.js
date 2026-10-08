@@ -1,6 +1,7 @@
+import { addHistorySeed } from "./historySeed.js";
 import { realServices } from "./catalog.js";
 import { snapshot } from "../utils/domain.js";
-export function seed() {
+export function seed({ history = true } = {}) {
   const clients = [
     "María González",
     "Carlos Mendoza",
@@ -22,7 +23,7 @@ export function seed() {
       "San Diego, Carabobo",
       "Naguanagua, Carabobo",
     ][i % 3],
-    date: `2026-09-${String(i + 10).padStart(2, "0")}`,
+    date: `2026-01-${String(i + 10).padStart(2, "0")}`,
     notes: "Cliente de demostración · datos ficticios",
     active: true,
   }));
@@ -200,7 +201,7 @@ export function seed() {
     responsible: "Luis Martínez",
     status: "En el taller",
   }));
-  return {
+  const db = {
     schemaVersion: 2,
     receiptVersion: 1,
     visits,
@@ -212,4 +213,5 @@ export function seed() {
     quotes,
     deliveries,
   };
+  return history ? addHistorySeed(db) : db;
 }

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { seed } from "../data/seed.js";
+import { seed as seedWithHistory } from "../data/seed.js";
+const seed = () => seedWithHistory({ history: false });
 import {
   saveQuote,
   saveDelivery,
