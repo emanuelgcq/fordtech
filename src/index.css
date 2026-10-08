@@ -1911,3 +1911,348 @@ tbody tr:hover {
     flex-wrap: wrap;
   }
 }
+/* Taller: acciones directas y recibos legibles */
+.simple-car-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 26px;
+}
+.simple-car-summary > div > span {
+  display: block;
+  font-size: 12px;
+  color: #63738c;
+  margin-bottom: 6px;
+}
+.simple-car-summary strong {
+  font-size: 17px;
+  color: #203c66;
+}
+.simple-car-summary p {
+  font-size: 14px;
+  color: #566c8b;
+  margin-top: 6px;
+}
+.simple-car-summary .patient-links {
+  gap: 18px;
+  margin: 0;
+}
+.simple-work-order {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.simple-work-order h2 {
+  font-size: 23px;
+}
+.add-work-buttons {
+  display: flex;
+  gap: 12px;
+  margin: 22px 0;
+}
+.add-work-buttons .btn {
+  min-height: 49px;
+  font-size: 16px;
+  padding: 13px 22px;
+}
+.simple-work-order table td {
+  font-size: 15px;
+  color: #344964;
+  padding: 17px;
+}
+.simple-work-order table th {
+  font-size: 12px;
+  color: #52647e;
+}
+.simple-work-order .line-input {
+  font-size: 15px;
+  width: 95px;
+}
+.simple-work-order .totals p {
+  font-size: 15px;
+  color: #536580;
+}
+.simple-work-order .totals .grand-total {
+  font-size: 24px;
+  color: #173d79;
+}
+.simple-work-order .form-actions {
+  position: static;
+  background: transparent;
+  padding: 18px 0;
+  z-index: 5;
+}
+.simple-work-order .form-actions .btn {
+  font-size: 15px;
+  min-height: 46px;
+}
+.optional-work-details > summary,
+.stay-breakdown > summary {
+  cursor: pointer;
+  color: #476389;
+  font-size: 14px;
+  font-weight: 650;
+}
+.optional-work-details[open] > summary {
+  margin-bottom: 25px;
+}
+.stay-breakdown {
+  margin: 15px 0;
+}
+.stay-reason {
+  margin: 14px 0;
+  color: #465e80;
+  font-size: 14px;
+}
+.stay-title p {
+  color: #5a6f8d;
+  font-size: 14px;
+}
+.stay-card .eyebrow {
+  font-size: 11px;
+  color: #607797;
+}
+.work-picker {
+  padding: 24px;
+}
+.work-picker .search {
+  max-width: none;
+}
+.work-picker-list {
+  display: grid;
+  gap: 9px;
+  max-height: 55vh;
+  overflow: auto;
+  margin: 18px 0;
+}
+.work-picker-list button {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-align: left;
+  border: 1px solid #dce5f1;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+  color: #295188;
+}
+.work-picker-list button:hover {
+  background: #edf4ff;
+  border-color: #7da1d9;
+}
+.work-picker-list span {
+  flex: 1;
+}
+.work-picker-list strong {
+  font-size: 15px;
+  display: block;
+  color: #2e4362;
+}
+.work-picker-list small {
+  display: block;
+  color: #677d9c;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.work-picker-list b {
+  font-size: 15px;
+  white-space: nowrap;
+}
+.delivery-receipt {
+  color: #182c47;
+}
+.delivery-receipt .document-header h2 {
+  font-size: 22px;
+}
+.delivery-receipt .document-identity p {
+  font-size: 14px;
+  color: #314662;
+  line-height: 1.75;
+}
+.delivery-receipt .document-identity strong {
+  font-size: 17px;
+}
+.delivery-receipt h3 {
+  font-size: 12px;
+  color: #395373;
+}
+.delivery-receipt .document-meta {
+  font-size: 13px;
+  color: #2f4868;
+}
+.delivery-receipt .document-table th {
+  font-size: 12px;
+  color: #304966;
+}
+.delivery-receipt .document-table td {
+  font-size: 14px;
+  color: #263c59;
+  padding: 14px 12px;
+}
+.delivery-receipt .document-table td:last-child,
+.delivery-receipt .document-table th:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+.delivery-receipt .document-section p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #304760;
+}
+.receipt-total {
+  width: 340px;
+}
+.delivery-receipt .receipt-total p {
+  font-size: 15px;
+  color: #344d6f;
+}
+.delivery-receipt .receipt-total .grand-total {
+  font-size: 25px;
+  border-top: 2px solid #183b75;
+  color: #102e60;
+}
+.delivery-receipt .declaration {
+  font-size: 12px;
+  color: #415674;
+}
+.delivery-receipt .signatures div {
+  font-size: 12px;
+  color: #354c6d;
+}
+@media (max-width: 760px) {
+  .simple-car-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 17px;
+    padding: 20px;
+  }
+  .add-work-buttons {
+    gap: 8px;
+  }
+  .add-work-buttons .btn {
+    font-size: 13px;
+    padding: 12px;
+    flex: 1;
+  }
+  .simple-work-order .form-actions {
+    position: static;
+    flex-wrap: wrap;
+  }
+  .simple-work-order .form-actions .btn {
+    flex: 1;
+    font-size: 13px;
+  }
+  .work-picker {
+    padding: 16px;
+  }
+  .work-picker-list button {
+    padding: 13px;
+    gap: 8px;
+  }
+  .work-picker-list strong {
+    font-size: 14px;
+  }
+  .delivery-receipt .document-header h2 {
+    font-size: 15px;
+  }
+  .delivery-receipt .document-table td {
+    font-size: 11px;
+    padding: 10px 5px;
+  }
+  .delivery-receipt .document-table th {
+    font-size: 10px;
+    padding: 10px 5px;
+  }
+  .delivery-receipt .document-identity p {
+    font-size: 12px;
+  }
+  .receipt-total {
+    width: 100%;
+  }
+}
+@media print {
+  .delivery-receipt .document-header h2 {
+    font-size: 15pt;
+  }
+  .delivery-receipt .document-identity p {
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+  .delivery-receipt .document-identity strong {
+    font-size: 11pt;
+  }
+  .delivery-receipt h3 {
+    font-size: 9pt;
+  }
+  .delivery-receipt .document-meta {
+    font-size: 9pt;
+  }
+  .delivery-receipt .document-table th {
+    font-size: 9pt;
+    padding: 8px;
+  }
+  .delivery-receipt .document-table td {
+    font-size: 10pt;
+    padding: 8px;
+  }
+  .delivery-receipt .receipt-total {
+    margin-top: 14px;
+    margin-bottom: 14px;
+    width: 300px;
+  }
+  .delivery-receipt .receipt-total p {
+    font-size: 10pt;
+    padding: 5px 0;
+  }
+  .delivery-receipt .receipt-total .grand-total {
+    font-size: 16pt;
+  }
+  .delivery-receipt .document-section p {
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+  .delivery-receipt .signatures div {
+    font-size: 9pt;
+  }
+  .delivery-receipt .declaration {
+    font-size: 8pt;
+  }
+  .receipt-total {
+    break-inside: avoid;
+  }
+}
+@media print {
+  .delivery-receipt .document-header h2 {
+    font-size: 13pt;
+  }
+  .delivery-receipt .document-header p {
+    margin: 3px 0;
+  }
+  .delivery-receipt .document-header {
+    padding-bottom: 10px;
+  }
+  .delivery-receipt .document-identity {
+    padding: 10px 0;
+  }
+  .delivery-receipt .document-identity p {
+    line-height: 1.35;
+  }
+  .delivery-receipt .document-meta {
+    padding: 7px 10px;
+    margin-bottom: 10px;
+  }
+  .delivery-receipt .document-section {
+    margin: 10px 0;
+    padding-top: 8px;
+  }
+  .delivery-receipt .document-section p {
+    line-height: 1.4;
+  }
+  .delivery-receipt .receipt-total p {
+    padding: 3px 0;
+  }
+  .delivery-receipt .signatures {
+    padding-top: 24px;
+    margin: 10px 10px 12px;
+  }
+}

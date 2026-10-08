@@ -8,11 +8,22 @@ import {
 } from "./domain.js";
 import { realServices } from "../data/catalog.js";
 export function migrate(db) {
-  if (db.schemaVersion === 2) return db;
+  if (db.schemaVersion === 2 && db.receiptVersion === 1) return db;
+  const deliveries = db.deliveries.map((n) => {
+    const quote = db.quotes.find((q) => q.id === n.quoteId);
+    return {
+      ...n,
+      discount: n.discount ?? Number(quote?.discount || 0),
+      tax: n.tax ?? Number(quote?.tax || 0),
+    };
+  });
+  if (db.schemaVersion === 2) return { ...db, receiptVersion: 1, deliveries };
   const legacyIds = new Set(Array.from({ length: 10 }, (_, i) => `s${i + 1}`));
   return {
     ...db,
     schemaVersion: 2,
+    receiptVersion: 1,
+    deliveries,
     visits: db.visits || [],
     services: [
       ...db.services.filter((s) => !legacyIds.has(s.id)),

@@ -123,33 +123,55 @@ export function QuoteDocument({ quote: q }) {
     </article>
   );
 }
-export function DeliveryDocument({ note: n }) {
+export function DeliveryDocument({ note: n, quote }) {
+  const detail = {
+    ...n,
+    discount: n.discount ?? quote?.discount ?? 0,
+    tax: n.tax ?? quote?.tax ?? 0,
+  };
+  const t = totals(detail);
   return (
-    <article className="document">
-      <Header title="NOTA DE ENTREGA" number={n.number} date={n.date} />
+    <article className="document delivery-receipt">
+      <Header
+        title="NOTA DE ENTREGA / RECIBO"
+        number={n.number}
+        date={n.date}
+      />
       <Identity client={n.client} vehicle={n.vehicle} />
       <div className="document-meta">
         <span>Presupuesto: {n.quoteNumber}</span>
         <span>Kilometraje de entrega: {n.mileage} km</span>
         <span>Estado: {n.status}</span>
       </div>
-      <h3 className="section-title">SERVICIOS REALIZADOS</h3>
-      <Lines
-        lines={n.lines.filter((l) => l.type === "service")}
-        prices={false}
-      />
-      <h3 className="section-title">PRODUCTOS Y REPUESTOS UTILIZADOS</h3>
-      <Lines
-        lines={n.lines.filter((l) => l.type === "product")}
-        prices={false}
-      />
-      <Section title="OBSERVACIONES DEL TRABAJO">{n.observations}</Section>
-      <Section title="RECOMENDACIONES DEL MECÁNICO">
-        {n.recommendations}
-      </Section>
-      <Section title="CONDICIONES GENERALES DEL VEHÍCULO">
-        {n.condition}
-      </Section>
+      <h3 className="section-title">DETALLE DE TRABAJOS Y PRODUCTOS</h3>
+      <Lines lines={n.lines} />
+      <div className="document-total receipt-total">
+        <p>
+          Subtotal <strong>{money(t.subtotal)}</strong>
+        </p>
+        <p>
+          Descuento <strong>− {money(t.discount)}</strong>
+        </p>
+        <p>
+          Impuesto ({detail.tax}%) <strong>{money(t.tax)}</strong>
+        </p>
+        <p className="grand-total">
+          TOTAL USD <strong>{money(t.total)}</strong>
+        </p>
+      </div>
+      {n.observations && (
+        <Section title="OBSERVACIONES DEL TRABAJO">{n.observations}</Section>
+      )}
+      {n.recommendations && (
+        <Section title="RECOMENDACIONES DEL MECÁNICO">
+          {n.recommendations}
+        </Section>
+      )}
+      {n.condition && (
+        <Section title="CONDICIONES GENERALES DEL VEHÍCULO">
+          {n.condition}
+        </Section>
+      )}
       <div className="document-identity">
         <section>
           <h3>RESPONSABLE DE LA ENTREGA</h3>
@@ -167,10 +189,6 @@ export function DeliveryDocument({ note: n }) {
         correspondientes.
       </p>
       <Signatures />
-      <footer className="document-footer">
-        Esta nota documenta la entrega. No genera ventas ni movimientos de
-        inventario.
-      </footer>
     </article>
   );
 }

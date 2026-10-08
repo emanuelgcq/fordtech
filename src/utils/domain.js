@@ -172,6 +172,8 @@ export function saveDelivery(db, input) {
     client: old?.client || { ...q.client },
     vehicle: old?.vehicle || { ...q.vehicle },
     lines: old?.lines || q.lines.map((l) => ({ ...l })),
+    discount: old?.discount ?? Number(q.discount || 0),
+    tax: old?.tax ?? Number(q.tax || 0),
   };
   return {
     ...db,

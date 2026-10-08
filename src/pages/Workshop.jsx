@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Link,
   useNavigate,
@@ -114,41 +114,64 @@ export function Workshop() {
                   <Badge value="En el taller" />
                 </div>
                 <p className="stay-reason">{v.reason}</p>
-                <div className="stay-lines">
-                  <div>
-                    <h3>Servicios de este ingreso</h3>
-                    {q.lines
-                      .filter((l) => l.type === "service")
-                      .map((l, i) => (
-                        <p key={i}>
-                          {l.name} <b>× {l.quantity}</b>
-                        </p>
-                      ))}
-                    {!q.lines.some((l) => l.type === "service") && (
-                      <p className="muted">Sin servicios registrados</p>
-                    )}
+                <details className="stay-breakdown">
+                  <summary>Ver servicios y productos</summary>
+                  <div className="stay-lines">
+                    <div>
+                      <h3>Servicios de este ingreso</h3>
+                      {q.lines
+                        .filter((l) => l.type === "service")
+                        .map((l, i) => (
+                          <p key={i}>
+                            {l.name} <b>× {l.quantity}</b>
+                          </p>
+                        ))}
+                      {!q.lines.some((l) => l.type === "service") && (
+                        <p className="muted">Sin servicios registrados</p>
+                      )}
+                    </div>
+                    <div>
+                      <h3>Productos y repuestos</h3>
+                      {q.lines
+                        .filter((l) => l.type === "product")
+                        .map((l, i) => (
+                          <p key={i}>
+                            {l.name} <b>× {l.quantity}</b>
+                          </p>
+                        ))}
+                      {!q.lines.some((l) => l.type === "product") && (
+                        <p className="muted">Sin productos registrados</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h3>Productos y repuestos</h3>
-                    {q.lines
-                      .filter((l) => l.type === "product")
-                      .map((l, i) => (
-                        <p key={i}>
-                          {l.name} <b>× {l.quantity}</b>
-                        </p>
-                      ))}
-                    {!q.lines.some((l) => l.type === "product") && (
-                      <p className="muted">Sin productos registrados</p>
-                    )}
-                  </div>
-                </div>
+                </details>
                 <footer>
                   <strong>{money(totals(q).total)}</strong>
+                  {!q.inventoryApplied &&
+                    !db.deliveries.some((n) => n.quoteId === q.id) && (
+                      <>
+                        <Link
+                          className="btn primary"
+                          to={`/workshop/${v.id}?add=service`}
+                        >
+                          <Plus size={17} />
+                          Añadir servicio
+                        </Link>
+                        <Link
+                          className="btn"
+                          to={`/workshop/${v.id}?add=product`}
+                        >
+                          <Plus size={17} />
+                          Añadir producto
+                        </Link>
+                      </>
+                    )}
+
                   <Link className="btn" to={`/vehicles/${car.id}`}>
                     Ficha e historial
                   </Link>
                   <Link className="btn primary" to={`/workshop/${v.id}`}>
-                    Gestionar ingreso / añadir trabajos →
+                    Abrir vehículo
                   </Link>
                 </footer>
               </article>
@@ -314,7 +337,14 @@ export function WorkshopDetail() {
   const [quote, setQuote] = useState(() =>
     saved ? { ...saved, lines: saved.lines.map((l) => ({ ...l })) } : null,
   );
-  const [kind, setKind] = useState("service");
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    if (params.get("add")) setParams({}, { replace: true });
+  }, [params, setParams]);
+  const [kind, setKind] = useState(
+    params.get("add") === "product" ? "product" : "service",
+  );
+  const [picker, setPicker] = useState(!!params.get("add"));
   const [search, setSearch] = useState("");
   const [delivery, setDelivery] = useState(null);
   const [dirty, setDirty] = useState(false);
@@ -361,6 +391,8 @@ export function WorkshopDetail() {
             },
           ],
     );
+    setPicker(false);
+    setSearch("");
   }
   function save(e) {
     e?.preventDefault();
@@ -422,157 +454,68 @@ export function WorkshopDetail() {
         description={`${visit.number} · ${client.name} · Ingreso ${visit.date}`}
         action={<Badge value={visit.status} />}
       />
-      <div className="patient-links">
-        <Link className="btn" to={`/clients/${client.id}`}>
-          <ExternalLink size={15} />
-          Ficha completa del cliente
-        </Link>
-        <Link className="btn" to={`/vehicles/${car.id}`}>
-          <ExternalLink size={15} />
-          Expediente del vehículo
-        </Link>
-        <Link className="btn" to={`/quotes/${quote.id}`}>
-          {quote.number}
-        </Link>
-        {note && (
-          <Link className="btn" to={`/deliveries/${note.id}`}>
-            {note.number} · Imprimir entrega
-          </Link>
-        )}
-      </div>
-      <div className="clinical-grid">
-        <aside className="patient-summary panel">
-          <h2>Ficha de recepción</h2>
-          <h3>{client.name}</h3>
-          <p>{client.document}</p>
+      <section className="panel simple-car-summary">
+        <div>
+          <span>Cliente</span>
+          <strong>{client.name}</strong>
           <p>{client.phone}</p>
-          <p>{client.address}</p>
-          <hr />
-          <h3>
+        </div>
+        <div>
+          <span>Vehículo</span>
+          <strong>
             {car.brand} {car.model} · {car.year}
-          </h3>
-          <p>Placa: {car.plate}</p>
-          <p>VIN: {car.vin || "—"}</p>
+          </strong>
           <p>
-            {car.color} · {car.fuel}
+            {car.plate} · {form.mileage} km
           </p>
-          <p>{car.notes}</p>
-          <hr />
-          <p>
-            <b>Responsable:</b> {visit.responsible}
-          </p>
-          <p>
-            <b>Ingresos previos:</b>{" "}
-            {
-              db.visits.filter((v) => v.vehicleId === car.id && v.id !== id)
-                .length
-            }
-          </p>
-          <p>
-            <b>Trabajos anteriores:</b>{" "}
-            {
-              db.quotes.filter(
-                (q) =>
-                  q.vehicleId === car.id &&
-                  q.status === "Completado" &&
-                  q.id !== quote.id,
-              ).length
-            }
-          </p>
-          <Link className="text-link" to={`/vehicles/${car.id}`}>
-            Ver todo el historial →
+        </div>
+        <div className="patient-links">
+          <Link className="text-link" to={`/clients/${client.id}`}>
+            Ficha del cliente
           </Link>
-        </aside>
+          <Link className="text-link" to={`/vehicles/${car.id}`}>
+            Historial del vehículo
+          </Link>
+          {note && (
+            <Link className="btn" to={`/deliveries/${note.id}`}>
+              Ver recibo de entrega
+            </Link>
+          )}
+        </div>
+      </section>
+      <div className="simple-work-order">
         <div>
           <form onSubmit={save}>
             <section className="panel form-panel">
-              <h2>Seguimiento de la estancia</h2>
-              <div className="form-grid">
-                <Field
-                  label="Fecha de ingreso"
-                  type="date"
-                  required
-                  disabled={visit.status !== "En el taller"}
-                  value={form.date}
-                  onChange={(e) => update("date", e.target.value)}
-                />
-                <Field
-                  label="Kilometraje de ingreso"
-                  type="number"
-                  min="0"
-                  required
+              <h2>Trabajos y productos del vehículo</h2>
+              <div className="add-work-buttons">
+                <button
+                  type="button"
+                  className="btn primary"
                   disabled={readonly}
-                  value={form.mileage}
-                  onChange={(e) => update("mileage", e.target.value)}
-                />
+                  onClick={() => {
+                    setKind("service");
+                    setSearch("");
+                    setPicker(true);
+                  }}
+                >
+                  <Plus size={20} />
+                  Añadir servicio
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  disabled={readonly}
+                  onClick={() => {
+                    setKind("product");
+                    setSearch("");
+                    setPicker(true);
+                  }}
+                >
+                  <Plus size={20} />
+                  Añadir producto
+                </button>
               </div>
-              {[
-                ["reason", "Motivo de ingreso / síntomas"],
-                ["diagnosis", "Diagnóstico y evolución del trabajo"],
-                ["condition", "Condiciones del vehículo"],
-                ["recommendations", "Recomendaciones del mecánico"],
-              ].map(([key, label]) => (
-                <Field key={key} label={label}>
-                  <textarea
-                    required={key === "reason"}
-                    disabled={visit.status !== "En el taller"}
-                    value={form[key] || ""}
-                    onChange={(e) => update(key, e.target.value)}
-                  />
-                </Field>
-              ))}
-            </section>
-            <section className="panel form-panel">
-              <h2>Servicios y productos de este ingreso</h2>
-              {!readonly && (
-                <div className="catalog-picker">
-                  <div className="toolbar">
-                    <div className="tabs">
-                      <button
-                        type="button"
-                        className={kind === "service" ? "selected" : ""}
-                        onClick={() => setKind("service")}
-                      >
-                        Servicios
-                      </button>
-                      <button
-                        type="button"
-                        className={kind === "product" ? "selected" : ""}
-                        onClick={() => setKind("product")}
-                      >
-                        Productos
-                      </button>
-                    </div>
-                    <SearchBox
-                      value={search}
-                      onChange={setSearch}
-                      placeholder="Buscar trabajo, categoría o repuesto…"
-                    />
-                  </div>
-                  <div className="catalog-results">
-                    {catalog.map((i) => (
-                      <button key={i.id} type="button" onClick={() => add(i)}>
-                        <Plus size={15} />
-                        <span>
-                          <strong>{i.name}</strong>
-                          <small>
-                            {i.category}
-                            {kind === "product"
-                              ? ` · ${i.stock} disponibles`
-                              : ""}
-                            {i.priceMode === "range"
-                              ? ` · Hasta ${money(i.priceMax)}`
-                              : i.priceMode === "from"
-                                ? " · A partir de"
-                                : ""}
-                          </small>
-                        </span>
-                        <b>{money(i.price)}</b>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
               {readonly && (
                 <p className="info">
                   El detalle de un trabajo completado o con nota de entrega está
@@ -695,6 +638,44 @@ export function WorkshopDetail() {
                 </div>
               </div>
             </section>
+            <details className="panel form-panel optional-work-details">
+              <summary>Observaciones y datos del ingreso</summary>
+
+              <div className="form-grid">
+                <Field
+                  label="Fecha de ingreso"
+                  type="date"
+                  required
+                  disabled={visit.status !== "En el taller"}
+                  value={form.date}
+                  onChange={(e) => update("date", e.target.value)}
+                />
+                <Field
+                  label="Kilometraje de ingreso"
+                  type="number"
+                  min="0"
+                  required
+                  disabled={readonly}
+                  value={form.mileage}
+                  onChange={(e) => update("mileage", e.target.value)}
+                />
+              </div>
+              {[
+                ["reason", "Motivo de ingreso / síntomas"],
+                ["diagnosis", "Diagnóstico y evolución del trabajo"],
+                ["condition", "Condiciones del vehículo"],
+                ["recommendations", "Recomendaciones del mecánico"],
+              ].map(([key, label]) => (
+                <Field key={key} label={label}>
+                  <textarea
+                    required={key === "reason"}
+                    disabled={visit.status !== "En el taller"}
+                    value={form[key] || ""}
+                    onChange={(e) => update(key, e.target.value)}
+                  />
+                </Field>
+              ))}
+            </details>
             {visit.status === "En el taller" && (
               <div className="form-actions">
                 <span className="muted">
@@ -702,17 +683,61 @@ export function WorkshopDetail() {
                 </span>
                 <button className="btn primary">
                   <Save size={16} />
-                  Guardar seguimiento y trabajos
+                  Guardar cambios
                 </button>
                 <button className="btn" type="button" onClick={openDelivery}>
                   <ClipboardCheck size={16} />
-                  Finalizar estancia / nota de entrega
+                  Entregar vehículo y generar recibo
                 </button>
               </div>
             )}
           </form>
         </div>
       </div>
+      {picker && !readonly && (
+        <Modal
+          title={kind === "service" ? "Añadir servicio" : "Añadir producto"}
+          onClose={() => setPicker(false)}
+        >
+          <div className="work-picker">
+            <SearchBox
+              value={search}
+              onChange={setSearch}
+              placeholder={
+                kind === "service" ? "Buscar servicio…" : "Buscar producto…"
+              }
+            />
+            <div className="work-picker-list">
+              {catalog.map((i) => (
+                <button type="button" key={i.id} onClick={() => add(i)}>
+                  <span>
+                    <strong>{i.name}</strong>
+                    <small>
+                      {i.category}
+                      {kind === "product"
+                        ? ` · ${i.stock} disponibles`
+                        : i.priceMode === "from"
+                          ? " · Precio desde"
+                          : i.priceMode === "range"
+                            ? ` · Hasta ${money(i.priceMax)}`
+                            : ""}
+                    </small>
+                  </span>
+                  <b>{money(i.price)}</b>
+                  <Plus size={19} />
+                </button>
+              ))}
+              {!catalog.length && (
+                <Empty text="No hay resultados para esta búsqueda." />
+              )}
+            </div>
+            <p className="muted">
+              Selecciona un artículo. Puedes ajustar cantidad y precio en la
+              lista del vehículo.
+            </p>
+          </div>
+        </Modal>
+      )}
       {delivery && (
         <Modal
           title="Finalizar estancia y entregar vehículo"

@@ -172,6 +172,8 @@ export function seed() {
     client: { ...q.client },
     vehicle: { ...q.vehicle },
     lines: q.lines.map((l) => ({ ...l })),
+    discount: q.discount,
+    tax: q.tax,
     mileage: q.mileage + 5,
     observations: "Trabajo revisado y prueba de funcionamiento realizada.",
     recommendations:
@@ -200,6 +202,7 @@ export function seed() {
   }));
   return {
     schemaVersion: 2,
+    receiptVersion: 1,
     visits,
     clients,
     vehicles,

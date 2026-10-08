@@ -390,7 +390,10 @@ export function DeliveryDetail() {
           </Link>
         </div>
       </div>
-      <DeliveryDocument note={n} />
+      <DeliveryDocument
+        note={n}
+        quote={db.quotes.find((q) => q.id === n.quoteId)}
+      />
     </>
   );
 }

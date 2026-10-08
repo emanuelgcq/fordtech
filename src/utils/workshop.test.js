@@ -218,3 +218,35 @@ test("El vehículo puede reingresar después de la entrega con historial indepen
   );
   assert.notEqual(n.visits.at(-1).quoteId, d.visits.at(-1).quoteId);
 });
+
+test("El recibo conserva descuento, impuesto y total aunque cambie después el presupuesto", () => {
+  const d = { ...seed(), visits: [] };
+  const q = d.quotes[6];
+  q.discount = 10;
+  q.tax = 16;
+  const a = saveDelivery(d, {
+    ...delivery,
+    quoteId: q.id,
+    date: "2026-10-08",
+    status: "Pendiente",
+  });
+  const note = a.deliveries.at(-1);
+  assert.equal(note.discount, 10);
+  assert.equal(note.tax, 16);
+  const updated = saveQuote(a, { ...q, discount: 0, tax: 0 });
+  assert.equal(updated.deliveries.at(-1).discount, 10);
+  assert.equal(updated.deliveries.at(-1).tax, 16);
+});
+test("Notas anteriores reciben sus importes sin borrar documentos al actualizar", () => {
+  const d = seed();
+  delete d.receiptVersion;
+  delete d.deliveries[0].discount;
+  delete d.deliveries[0].tax;
+  d.quotes[0].discount = 5;
+  d.quotes[0].tax = 10;
+  const next = migrate(d);
+  assert.equal(next.deliveries[0].discount, 5);
+  assert.equal(next.deliveries[0].tax, 10);
+  assert.equal(next.deliveries[0].id, d.deliveries[0].id);
+  assert.equal(migrate(next), next);
+});

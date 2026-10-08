@@ -78,3 +78,9 @@ Se reemplazaron los 10 servicios ficticios por **44 trabajos** distribuidos en m
 Los 15 productos de demostración siguen separados: la tarifa suministrada corresponde a trabajos, no a precios de repuestos. El administrador puede actualizar sus precios y existencias desde Productos.
 
 La actualización migra automáticamente el catálogo en localStorage, manteniendo clientes, vehículos, productos, presupuestos históricos, notas y servicios propios añadidos con identificadores diferentes a los iniciales. Los nombres y precios de documentos anteriores se conservan. No se atribuyen ingresos activos a vehículos antiguos automáticamente: para iniciar su seguimiento, regístralos en Taller. Una instalación nueva incluye 4 ingresos ficticios activos para mostrar el flujo.
+
+### Vista sencilla del taller y recibo de entrega
+
+Desde la tarjeta de un vehículo con trabajo editable, pulsa **Añadir servicio** o **Añadir producto**. También encontrarás ambos botones al abrir el vehículo: aparece un buscador, seleccionas el artículo y ajustas cantidad/precio en su lista. Las observaciones y datos de recepción están en una sección desplegable. Guarda los cambios y pulsa **Entregar vehículo y generar recibo**.
+
+La nota de entrega muestra todos los trabajos y productos, cantidades, precios unitarios, subtotales, descuento, impuesto y total USD. Conserva los importes del documento al emitirse. Los documentos anteriores reciben sus importes desde el presupuesto vinculado al actualizarse. La impresión y PDF incluyen el recibo sin menú administrativo. Los trabajos ya completados o con nota emitida mantienen protegido su detalle histórico.
