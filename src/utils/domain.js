@@ -67,9 +67,13 @@ export function saveQuote(db, input) {
   if (old?.inventoryApplied)
     throw Error("Un trabajo completado conserva su detalle histórico.");
   if (
-    db.deliveries.some((n) => n.quoteId === input.id) &&
+    db.deliveries.some(
+      (n) => n.quoteId === input.id && n.status === "Entregado",
+    ) &&
     old &&
-    JSON.stringify(input.lines) !== JSON.stringify(old.lines)
+    (JSON.stringify(input.lines) !== JSON.stringify(old.lines) ||
+      Number(input.discount) !== Number(old.discount) ||
+      Number(input.tax) !== Number(old.tax))
   )
     throw Error(
       "El detalle tiene una nota de entrega vinculada y está protegido.",
@@ -116,6 +120,18 @@ export function saveQuote(db, input) {
   return {
     ...db,
     products,
+    deliveries: db.deliveries.map((n) =>
+      n.quoteId === q.id && n.status === "Pendiente"
+        ? {
+            ...n,
+            lines: q.lines.map((l) => ({ ...l })),
+            discount: Number(q.discount || 0),
+            tax: Number(q.tax || 0),
+            client: { ...q.client },
+            vehicle: { ...q.vehicle },
+          }
+        : n,
+    ),
     quotes: old
       ? db.quotes.map((x) => (x.id === q.id ? q : x))
       : [...db.quotes, q],

@@ -125,7 +125,9 @@ export function saveVisit(db, input, quote) {
   let next = db;
   if (
     !db.quotes.find((q) => q.id === quote.id)?.inventoryApplied &&
-    !db.deliveries.some((n) => n.quoteId === quote.id)
+    !db.deliveries.some(
+      (n) => n.quoteId === quote.id && n.status === "Entregado",
+    )
   ) {
     if (!quote.lines.length)
       throw Error("Agrega al menos un servicio o repuesto.");

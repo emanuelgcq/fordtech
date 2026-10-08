@@ -219,7 +219,7 @@ test("El vehículo puede reingresar después de la entrega con historial indepen
   assert.notEqual(n.visits.at(-1).quoteId, d.visits.at(-1).quoteId);
 });
 
-test("El recibo conserva descuento, impuesto y total aunque cambie después el presupuesto", () => {
+test("El recibo pendiente se actualiza con los importes del presupuesto", () => {
   const d = { ...seed(), visits: [] };
   const q = d.quotes[6];
   q.discount = 10;
@@ -234,8 +234,8 @@ test("El recibo conserva descuento, impuesto y total aunque cambie después el p
   assert.equal(note.discount, 10);
   assert.equal(note.tax, 16);
   const updated = saveQuote(a, { ...q, discount: 0, tax: 0 });
-  assert.equal(updated.deliveries.at(-1).discount, 10);
-  assert.equal(updated.deliveries.at(-1).tax, 16);
+  assert.equal(updated.deliveries.at(-1).discount, 0);
+  assert.equal(updated.deliveries.at(-1).tax, 0);
 });
 test("Notas anteriores reciben sus importes sin borrar documentos al actualizar", () => {
   const d = seed();
@@ -249,4 +249,40 @@ test("Notas anteriores reciben sus importes sin borrar documentos al actualizar"
   assert.equal(next.deliveries[0].tax, 10);
   assert.equal(next.deliveries[0].id, d.deliveries[0].id);
   assert.equal(migrate(next), next);
+});
+
+test("Explorer de Carlos admite trabajos con nota pendiente sin duplicar documentos ni stock", () => {
+  const d = seed(),
+    v = d.visits[0],
+    q = d.quotes[1];
+  const n = saveVisit(d, v, {
+    ...q,
+    lines: [
+      ...q.lines,
+      {
+        type: "service",
+        itemId: "ft-service-44",
+        name: "Diagnóstico completo",
+        quantity: 1,
+        price: 60,
+      },
+      { type: "product", itemId: "p1", name: "Aceite", quantity: 2, price: 12 },
+    ],
+  });
+  assert.equal(n.quotes[1].lines.length, 4);
+  assert.equal(n.deliveries[1].lines.length, 4);
+  assert.equal(n.deliveries.length, 2);
+  assert.deepEqual(n.products, d.products);
+  const closed = closeVisit(n, v.id, {
+    ...delivery,
+    mileage: 36205,
+    receiver: "Carlos Mendoza",
+  });
+  assert.equal(closed.deliveries[1].lines.length, 4);
+  assert.equal(closed.products[0].stock, d.products[0].stock - 2);
+  assert.equal(closed.deliveries.length, 2);
+  assert.throws(
+    () => saveQuote(closed, { ...closed.quotes[1], discount: 1 }),
+    /histórico/,
+  );
 });

@@ -148,7 +148,9 @@ export function Workshop() {
                 <footer>
                   <strong>{money(totals(q).total)}</strong>
                   {!q.inventoryApplied &&
-                    !db.deliveries.some((n) => n.quoteId === q.id) && (
+                    !db.deliveries.some(
+                      (n) => n.quoteId === q.id && n.status === "Entregado",
+                    ) && (
                       <>
                         <Link
                           className="btn primary"
@@ -353,7 +355,9 @@ export function WorkshopDetail() {
     client = db.clients.find((c) => c.id === visit.clientId);
   const note = db.deliveries.find((n) => n.quoteId === quote.id);
   const readonly =
-    visit.status !== "En el taller" || saved.inventoryApplied || !!note;
+    visit.status !== "En el taller" ||
+    saved.inventoryApplied ||
+    note?.status === "Entregado";
   const catalog = db[kind === "service" ? "services" : "products"].filter(
     (i) =>
       i.active &&
@@ -518,7 +522,7 @@ export function WorkshopDetail() {
               </div>
               {readonly && (
                 <p className="info">
-                  El detalle de un trabajo completado o con nota de entrega está
+                  El detalle de un trabajo completado o ya entregado está
                   protegido. Puedes consultar sus líneas y finalizar la
                   estancia.
                 </p>
