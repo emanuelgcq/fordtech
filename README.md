@@ -33,7 +33,7 @@ La autenticación, usuarios y persistencia están simulados con localStorage. No
 ## Funciones
 
 - Dashboard con cifras y presupuestos recientes.
-- Clientes y vehículos: alta, edición, eliminación sin relaciones, desactivación, búsqueda y fichas con historial y filtros por fecha/vehículo.
+- Clientes y vehículos: alta, edición, eliminación sin relaciones, desactivación, búsqueda y fichas con una única tabla de historial, búsqueda y filtro por vehículo.
 - Servicios y repuestos: catálogo, precios, estados y existencias. El empleado puede consultarlos; la administración del catálogo y usuarios está reservada al administrador.
 - Presupuestos: líneas desde los catálogos, cantidades y precios independientes, descuento en USD, impuesto porcentual, estados, duplicación, impresión/PDF y enlace WhatsApp con mensaje. El PDF se adjunta manualmente.
 - El inventario se descuenta de forma atómica una sola vez al completar un presupuesto. Se verifica el stock combinado por repuesto; un documento completado queda protegido. Los trabajos aprobados y completados alimentan el historial sin registros duplicados.
@@ -69,7 +69,7 @@ La sección **Taller** reemplaza la lista general de vehículos del menú. Muest
 4. Pulsa **Finalizar estancia / nota de entrega** para registrar receptor, responsable, kilometraje, fecha y condiciones finales. La operación completa el presupuesto, descuenta existencias una sola vez, genera o entrega la nota existente y cambia el ingreso a **Entregado**. Si una validación falla, la operación completa no se guarda.
 5. El vehículo deja la lista activa y su estancia queda en el expediente. Puede ingresar nuevamente con otro registro y presupuesto; sus antecedentes permanecen disponibles.
 
-La ficha del cliente mantiene su expediente y filtros. La ficha del vehículo usa una vista sencilla: propietario y datos principales arriba, seguidos de una lista de visitas con fecha, kilometraje, servicios, productos y total. Cada estancia reúne sus presupuestos adicionales sin repetirla en el historial. El buscador permite encontrar trabajos, productos, fechas y documentos; las observaciones y presupuestos se consultan en «Más detalles». Los recibos y el trabajo actual tienen accesos directos.
+Las fichas de cliente y vehículo muestran una única tabla de historial: fecha y kilometraje, vehículo (en la ficha del cliente), servicios, productos, total y entrega con acceso al recibo. Cada visita reúne sus presupuestos adicionales en una sola fila. Hay un buscador y un selector de vehículo en clientes con varios carros, sin pestañas ni cronología. Los presupuestos, recibos y trabajos activos tienen enlaces directos.
 
 ### Catálogo suministrado por FORDTECH
 

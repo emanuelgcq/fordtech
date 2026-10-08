@@ -2414,3 +2414,62 @@ tbody tr:hover {
     margin-left: 8px;
   }
 }
+
+/* Un único historial de servicios, productos y entregas. */
+.client-history-layout {
+  min-width: 0;
+}
+.history-panel .table-wrap {
+  overflow-x: auto;
+}
+.history-panel table {
+  min-width: 760px;
+}
+.history-panel td {
+  vertical-align: top;
+}
+.history-items {
+  min-width: 180px;
+  max-width: 290px;
+  white-space: normal;
+}
+.history-items ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.history-items li + li {
+  margin-top: 8px;
+}
+.history-items li span {
+  color: #6d7d95;
+  white-space: nowrap;
+}
+.history-date,
+.history-total {
+  white-space: nowrap;
+}
+.history-delivery {
+  min-width: 145px;
+}
+.history-delivery .text-link {
+  display: block;
+  margin-top: 6px;
+}
+.history-panel .toolbar select {
+  max-width: 250px;
+}
+
+.history-panel table {
+  font-size: 13px;
+}
+.history-panel th {
+  font-size: 12px;
+}
+.history-panel td small {
+  font-size: 11px;
+}
+.client-history-layout .patient-vehicles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+}
