@@ -1,4 +1,4 @@
-import { useId, cloneElement } from "react";
+import { useId, cloneElement, Children, isValidElement, Fragment } from "react";
 import { X, Search, Plus, Inbox } from "lucide-react";
 export function Heading({
   eyebrow = "GESTIÓN DEL TALLER",
@@ -96,8 +96,14 @@ export function AddButton({ children = "Nuevo registro", onClick }) {
   );
 }
 export function Table({ heads, children }) {
+  const cells = (children) =>
+    Children.toArray(children).flatMap((cell) =>
+      isValidElement(cell) && cell.type === Fragment
+        ? cells(cell.props.children)
+        : [cell],
+    );
   return (
-    <div className="table-wrap">
+    <div className="table-wrap responsive-table">
       <table>
         <thead>
           <tr>
@@ -106,7 +112,26 @@ export function Table({ heads, children }) {
             ))}
           </tr>
         </thead>
-        <tbody>{children}</tbody>
+        <tbody>
+          {Children.toArray(children).map((row) =>
+            isValidElement(row) && row.type === "tr"
+              ? cloneElement(
+                  row,
+                  {},
+                  cells(row.props.children).map((cell, index) =>
+                    isValidElement(cell) && cell.type === "td"
+                      ? cloneElement(cell, {
+                          key: `cell-${index}`,
+                          "data-label":
+                            cell.props["data-label"] ??
+                            (heads[index] || "Acciones"),
+                        })
+                      : cell,
+                  ),
+                )
+              : row,
+          )}
+        </tbody>
       </table>
     </div>
   );

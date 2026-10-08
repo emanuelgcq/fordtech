@@ -96,3 +96,7 @@ Un presupuesto completado conserva sus líneas y el inventario ya descontado. Mi
 María González, Carlos Mendoza y Luisa Pérez tienen varias visitas finalizadas con servicios, repuestos, totales y recibos. Ana Rodríguez incluye una compra de batería sin servicios; también hay visitas con solo servicios. Los trabajos entregados aparecen en las fichas del cliente y del vehículo, fuera de la lista del taller activo.
 
 Si el navegador ya tiene datos guardados, el administrador puede cargar este nuevo caso desde «Restaurar demostración». La confirmación reemplaza los registros locales por los datos de ejemplo.
+
+### Adaptación global a pantallas
+
+Todo el sistema adapta navegación, listas, formularios, ventanas y documentos a móvil, tablet y escritorio. Hasta 640 px, las tablas administrativas muestran registros con etiquetas, los formularios usan una columna y los controles principales tienen al menos 44 px de altura. Hasta 1024 px, el menú se abre en un panel lateral y se cierra con Escape, al seleccionar una sección o al tocar fuera. Los documentos se adaptan para consultar en móvil y conservan su formato A4 al imprimir.

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -28,6 +28,19 @@ export default function Layout() {
   const { user, admin, logout, reset } = useApp();
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const close = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", close);
+    };
+  }, [open]);
   const title =
     links.find(([path]) =>
       path === "/"
@@ -49,7 +62,7 @@ export default function Layout() {
           </button>
         </div>
         <p className="nav-label">ESPACIO DE TRABAJO</p>
-        <nav>
+        <nav id="main-navigation">
           {[...links, ...(admin ? [["/users", "Usuarios", Shield]] : [])].map(
             ([path, label, Icon]) => (
               <NavLink
@@ -100,6 +113,8 @@ export default function Layout() {
             <button
               className="icon-btn mobile-menu"
               aria-label="Abrir menú"
+              aria-expanded={open}
+              aria-controls="main-navigation"
               onClick={() => setOpen(true)}
             >
               <Menu size={22} />

@@ -57,13 +57,15 @@ function Lines({ lines, prices = true }) {
       <tbody>
         {lines.map((l, i) => (
           <tr key={i}>
-            <td>{l.type === "product" ? "Repuesto" : "Servicio"}</td>
-            <td>{l.name}</td>
-            <td>{l.quantity}</td>
+            <td data-label="Tipo">
+              {l.type === "product" ? "Repuesto" : "Servicio"}
+            </td>
+            <td data-label="Descripción">{l.name}</td>
+            <td data-label="Cantidad">{l.quantity}</td>
             {prices && (
               <>
-                <td>{money(l.price)}</td>
-                <td>{money(l.price * l.quantity)}</td>
+                <td data-label="Precio">{money(l.price)}</td>
+                <td data-label="Subtotal">{money(l.price * l.quantity)}</td>
               </>
             )}
           </tr>
